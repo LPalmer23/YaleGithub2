@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DQI Pipeline -- Decoded Quantum Interferometry</title>
+<style>
+  /* ── Reset & Base ────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #E31837;
+    --charcoal: #2D2926;
+    --light: #F5F5F5;
+    --q-blue: #0066CC;
+    --yale: #00356B;
+    --green: #1B9E4B;
+    --orange: #E68A00;
+    --white: #FFFFFF;
+    --gray-200: #E5E5E5;
+    --gray-300: #D4D4D4;
+    --gray-400: #A3A3A3;
+    --gray-500: #737373;
+    --gray-600: #525252;
+    --shadow: 0 2px 12px rgba(0,0,0,.12);
+    --radius: 10px;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--light);
+    color: var(--charcoal);
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ──────────────────────────────────────────── */
+  header {
+    background: linear-gradient(135deg, var(--yale) 0%, var(--charcoal) 100%);
+    color: var(--white);
+    padding: 28px 40px 22px;
+    text-align: center;
+  }
+  header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -.5px; }
+  header h1 span.accent { color: var(--red); }
+  header p.sub {
+    margin-top: 6px;
+    font-size: .95rem;
+    color: var(--gray-300);
+    max-width: 680px;
+    margin-left: auto; margin-right: auto;
+  }
+  .brand-strip {
+    display: flex; justify-content: center; gap: 28px;
+    margin-top: 12px; font-size: .78rem; color: var(--gray-400);
+  }
+  .brand-strip span { opacity: .85; }
+
+  /* ── Tab navigation ────────────────────────────────── */
+  .tabs {
+    display: flex;
+    background: var(--white);
+    border-bottom: 2px solid var(--gray-200);
+    padding: 0 24px;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .tabs::-webkit-scrollbar { height: 8px; }
+  .tabs::-webkit-scrollbar-thumb {
+    background: var(--gray-300);
+    border-radius: 999px;
+  }
+  .tab {
+    padding: 14px 22px;
+    font-size: .86rem;
+    font-weight: 700;
+    color: var(--gray-500);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s, border-color .2s, background .2s;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--charcoal); background: #FAFAFA; }
+  .tab.active {
+    color: var(--red);
+    border-bottom-color: var(--red);
+    background: #FFF9FA;
+  }
+
+  /* ── Layout ──────────────────────────────────────────── */
+  .container { max-width: 1360px; margin: 0 auto; padding: 0 24px; }
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  /* ── Section titles ──────────────────────────────────── */
+  .section-label {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--white);
+    background: var(--yale);
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--charcoal);
+  }
+
+  /* ── Key insight / takeaway ──────────────────────────── */
+  .key-insight {
+    background: linear-gradient(135deg, #EBF5FF 0%, #F0F7FF 100%);
+    border-left: 4px solid var(--q-blue);
+    padding: 14px 18px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 18px 0 10px;
+    font-size: .88rem;
+  }
+  .key-insight strong { color: var(--q-blue); }
+
+  /* ── Warning callout ─────────────────────────────────── */
+  .warning-callout {
+    background: #FFF8E6;
+    border-left: 4px solid var(--orange);
+    padding: 12px 16px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: .84rem;
+    margin: 10px 0;
+  }
+
+  /* ── Section paddings ──────────────────────────────── */
+  #section-why,
+  #section-gf2,
+  #section-transform,
+  #section-a,
+  #section-b,
+  #section-c { padding: 36px 0 28px; }
+
+  /* ── Section A: Why re-encode ──────────────────────── */
+  .story-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1fr;
+    gap: 18px;
+    align-items: stretch;
+    margin-top: 12px;
+  }
+  .story-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 22px 20px;
+  }
+  .story-card h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--yale);
+  }
+  .story-card p {
+    font-size: .87rem;
+    color: var(--gray-600);
+  }
+  .story-card.story-lead { border-top: 4px solid var(--red); }
+  .story-card.story-why { border-top: 4px solid var(--orange); }
+  .story-card.story-circuit { border-top: 4px solid var(--q-blue); }
+  .bridge-flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .bridge-step {
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 16px 16px 14px;
+    border-top: 4px solid var(--red);
+  }
+  .bridge-step .bridge-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--red);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .78rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .bridge-step h4 {
+    font-size: .9rem;
+    margin-bottom: 6px;
+    color: var(--charcoal);
+  }
+  .bridge-step p {
+    font-size: .83rem;
+    color: var(--gray-600);
+  }
+
+  /* ── Section B/C shared learning blocks ────────────── */
+  .primer-hero {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 18px;
+    align-items: stretch;
+    margin-top: 12px;
+  }
+  .primer-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 22px 20px;
+  }
+  .primer-card h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--yale);
+  }
+  .primer-card p, .primer-card li {
+    font-size: .87rem;
+    color: var(--gray-600);
+  }
+  .primer-card ul {
+    padding-left: 18px;
+    margin-top: 8px;
+  }
+  .gf2-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .gf2-chip {
+    background: var(--light);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .gf2-chip .label {
+    display: block;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--gray-500);
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+  .gf2-chip .value {
+    font-family: 'Courier New', monospace;
+    font-size: .92rem;
+    font-weight: 700;
+    color: var(--charcoal);
+  }
+  .formula-block {
+    background: #F8FAFC;
+    border: 1px solid #DBEAFE;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: .85rem;
+    line-height: 1.7;
+    margin-top: 12px;
+    color: var(--charcoal);
+  }
+  .truth-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: .82rem;
+  }
+  .truth-table th,
+  .truth-table td {
+    border: 1px solid var(--gray-200);
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .truth-table th {
+    background: #F8FAFC;
+    color: var(--gray-600);
+    font-weight: 700;
+  }
+  .parity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+  .parity-card {
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+  }
+  .parity-card h4 {
+    font-size: .95rem;
+    margin-bottom: 8px;
+    color: var(--yale);
+  }
+  .parity-card p, .parity-card li {
+    font-size: .85rem;
+    color: var(--gray-600);
+  }
+  .parity-card ul {
+    padding-left: 18px;
+    margin-top: 10px;
+  }
+  .notation-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .notation-card {
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 18px 16px;
+    border-top: 4px solid var(--red);
+  }
+  .notation-card h4 {
+    font-size: .9rem;
+    margin-bottom: 8px;
+    color: var(--red);
+  }
+  .notation-card p {
+    font-size: .83rem;
+    color: var(--gray-600);
+  }
+  .matrix-demo {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+  .matrix-demo .worked-card { border-top-color: var(--red); }
+  .matrix-demo .worked-card h4 { color: var(--red); }
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .roadmap-step {
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 18px 16px;
+    border-top: 4px solid var(--q-blue);
+  }
+  .roadmap-step .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--q-blue);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .78rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .roadmap-step h4 {
+    font-size: .9rem;
+    margin-bottom: 6px;
+    color: var(--charcoal);
+  }
+  .roadmap-step p {
+    font-size: .83rem;
+    color: var(--gray-600);
+  }
+  .worked-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+  .worked-card {
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+    border-top: 4px solid var(--green);
+  }
+  .worked-card h4 {
+    font-size: .95rem;
+    margin-bottom: 8px;
+    color: var(--green);
+  }
+  .worked-card p {
+    font-size: .85rem;
+    color: var(--gray-600);
+  }
+  .worked-card .equation {
+    margin: 10px 0;
+    background: var(--light);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: .84rem;
+    line-height: 1.6;
+    color: var(--charcoal);
+  }
+  .worked-card .exact {
+    color: var(--green);
+    font-weight: 700;
+  }
+  .worked-card .approx {
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .takeaway-strip {
+    margin-top: 18px;
+    background: linear-gradient(135deg, #EEF7FF 0%, #F8FBFF 100%);
+    border: 1px solid #D6E9FF;
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .takeaway-strip h3 {
+    font-size: .96rem;
+    color: var(--q-blue);
+    margin-bottom: 10px;
+  }
+  .takeaway-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .takeaway-item {
+    background: rgba(255,255,255,.85);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: .83rem;
+    color: var(--gray-600);
+  }
+  .takeaway-item strong { color: var(--charcoal); }
+
+  /* ── Section D: Pipeline ─────────────────────────────── */
+  #section-a { padding: 36px 0 24px; }
+  .pipeline-wrapper {
+    display: grid;
+    grid-template-columns: 1fr auto 2.6fr auto 1fr;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 10px;
+  }
+  .pipeline-arrow {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; color: var(--gray-400);
+    padding: 0 6px;
+    user-select: none;
+  }
+  .pipeline-arrow svg { width: 38px; height: 38px; }
+
+  /* ── Stage cards ─────────────────────────────────────── */
+  .stage-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .25s;
+  }
+  .stage-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.16); }
+  .stage-card .card-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .stage-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .82rem; color: var(--white);
+    flex-shrink: 0;
+  }
+  .stage-card h3 { font-size: 1rem; font-weight: 700; }
+  .stage-card p { font-size: .84rem; color: var(--gray-600); }
+  .stage-1 { border-top: 4px solid var(--q-blue); }
+  .stage-1 .stage-num { background: var(--q-blue); }
+  .stage-2 { border-top: 4px solid var(--yale); }
+  .stage-2 .stage-num { background: var(--yale); }
+  .stage-3 { border-top: 4px solid var(--green); }
+  .stage-3 .stage-num { background: var(--green); }
+
+  /* ── Mini matrix ─────────────────────────────────────── */
+  .mini-matrix-wrap {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    margin-top: 14px; justify-content: center;
+  }
+  .mini-matrix {
+    font-family: 'Courier New', monospace;
+    font-size: .72rem;
+    background: var(--light);
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .mini-matrix .label {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--gray-500);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .mini-matrix .one { color: var(--red); font-weight: 700; }
+  .mini-matrix .zero { color: var(--gray-400); }
+
+  /* ── Constraint transform ────────────────────────────── */
+  .transform-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: .82rem;
+    margin: 6px 0;
+    font-family: 'Courier New', monospace;
+  }
+  .transform-row .arr { color: var(--red); font-weight: 700; font-size: 1rem; }
+
+  /* ── Circuit diagram (Stage 2) ───────────────────────── */
+  .circuit-outer { position: relative; }
+  .circuit-canvas-wrap {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 12px;
+  }
+  .circuit-canvas-wrap canvas {
+    display: block;
+    width: 100%;
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  /* clickable circuit sections */
+  .circuit-sections {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .circ-sec {
+    background: var(--light);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 12px 10px;
+    cursor: pointer;
+    transition: all .2s;
+    text-align: center;
+  }
+  .circ-sec:hover, .circ-sec.active {
+    border-color: var(--yale);
+    background: #EBF5FF;
+  }
+  .circ-sec .sec-num {
+    font-size: .68rem; font-weight: 700;
+    color: var(--yale);
+    margin-bottom: 4px;
+  }
+  .circ-sec .sec-title {
+    font-size: .78rem; font-weight: 600;
+    color: var(--charcoal);
+  }
+
+  /* detail panel */
+  .circuit-detail {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-top: 12px;
+    min-height: 90px;
+    transition: opacity .25s;
+  }
+  .circuit-detail h4 {
+    font-size: .95rem;
+    color: var(--yale);
+    margin-bottom: 8px;
+  }
+  .circuit-detail p { font-size: .84rem; }
+  .circuit-detail .analogy {
+    background: #F8F0FF;
+    border-left: 3px solid #7C3AED;
+    padding: 8px 14px;
+    margin-top: 10px;
+    border-radius: 0 6px 6px 0;
+    font-size: .82rem;
+    color: #5B21B6;
+  }
+  .circuit-detail code {
+    background: var(--light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: .82rem;
+  }
+
+  /* B-matrix overlay toggle */
+  .toggle-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 14px;
+  }
+  .toggle-btn {
+    background: var(--yale);
+    color: var(--white);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: .78rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .2s;
+  }
+  .toggle-btn:hover { background: var(--q-blue); }
+  .toggle-btn.toggled { background: var(--red); }
+
+  /* ── Post-selection visualization (Stage 3) ──────────── */
+  .shots-grid {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin: 14px 0 10px;
+    max-height: 210px;
+    overflow: hidden;
+    position: relative;
+  }
+  .shot {
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    font-size: .52rem;
+    display: flex; align-items: center; justify-content: center;
+    font-family: monospace;
+    transition: all .6s ease;
+    color: var(--white);
+  }
+  .shot.good {
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(27,158,75,.5);
+  }
+  .shot.bad {
+    background: var(--gray-300);
+    color: var(--gray-500);
+    opacity: .5;
+  }
+  .post-stats {
+    display: flex; gap: 20px; margin-top: 10px;
+    font-size: .82rem;
+  }
+  .post-stats .stat-val {
+    font-weight: 700; font-size: 1.1rem;
+  }
+  .post-stats .stat-val.green { color: var(--green); }
+  .post-stats .stat-val.gray { color: var(--gray-500); }
+
+  /* histogram */
+  .histogram {
+    display: flex; align-items: flex-end; gap: 3px;
+    height: 80px;
+    margin-top: 16px;
+    padding: 0 4px;
+  }
+  .hist-bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    min-width: 6px;
+    position: relative;
+    transition: height .8s ease;
+  }
+  .hist-labels {
+    display: flex; justify-content: space-between;
+    font-size: .65rem; color: var(--gray-500);
+    margin-top: 2px;
+  }
+
+  /* ── Animation dot ───────────────────────────────────── */
+  .flow-dot {
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 12px var(--red);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+    transition: none;
+  }
+
+  /* ── Section E: DQI vs QAOA ──────────────────────────── */
+  #section-b {
+    padding: 32px 0;
+  }
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    margin-top: 14px;
+  }
+  .comp-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 22px;
+    text-align: center;
+  }
+  .comp-card h3 { font-size: 1.15rem; margin-bottom: 14px; }
+  .comp-card.qaoa { border-top: 4px solid var(--orange); }
+  .comp-card.qaoa h3 { color: var(--orange); }
+  .comp-card.dqi { border-top: 4px solid var(--q-blue); }
+  .comp-card.dqi h3 { color: var(--q-blue); }
+  .comp-vs {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; font-weight: 800; color: var(--gray-400);
+  }
+  .loop-diagram, .oneshot-diagram {
+    margin: 18px auto;
+    display: block;
+  }
+  .comp-text {
+    font-size: .84rem;
+    color: var(--gray-600);
+    margin-top: 12px;
+    text-align: left;
+  }
+  .comp-text strong { color: var(--charcoal); }
+
+  /* ── Section F: Error Correction Sidebar ─────────────── */
+  #section-c {
+    padding: 0 0 40px;
+  }
+  .sidebar-toggle {
+    background: var(--charcoal);
+    color: var(--white);
+    border: none;
+    padding: 10px 22px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: .88rem;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+    transition: background .2s;
+  }
+  .sidebar-toggle:hover { background: var(--yale); }
+  .sidebar-toggle svg {
+    transition: transform .3s;
+  }
+  .sidebar-toggle.open svg { transform: rotate(90deg); }
+  .sidebar-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .5s ease;
+  }
+  .sidebar-panel.open { max-height: 600px; }
+  .sidebar-inner {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 26px;
+    margin-top: 14px;
+  }
+  .analogy-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    margin-top: 16px;
+    align-items: start;
+  }
+  .analogy-card {
+    background: var(--light);
+    border-radius: 8px;
+    padding: 16px 14px;
+    font-size: .84rem;
+  }
+  .analogy-card h4 {
+    font-size: .88rem;
+    margin-bottom: 8px;
+  }
+  .analogy-card.ecc h4 { color: var(--green); }
+  .analogy-card.dqi-a h4 { color: var(--q-blue); }
+  .analogy-arrow {
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; color: var(--gray-400);
+    text-align: center;
+    padding-top: 30px;
+  }
+  .analogy-steps {
+    list-style: none;
+    padding: 0;
+  }
+  .analogy-steps li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .analogy-steps li:last-child { border-bottom: none; }
+  .step-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .65rem; font-weight: 700; color: var(--white);
+    flex-shrink: 0;
+  }
+  .ecc .step-icon { background: var(--green); }
+  .dqi-a .step-icon { background: var(--q-blue); }
+
+  /* ── Tagline footer ──────────────────────────────────── */
+  .tagline {
+    text-align: center;
+    padding: 28px 20px;
+    background: var(--charcoal);
+    color: var(--gray-300);
+    font-size: .88rem;
+    line-height: 1.7;
+  }
+  .tagline strong { color: var(--white); }
+  .tagline .accent { color: var(--red); }
+
+  /* ── Responsive ──────────────────────────────────────── */
+  @media (max-width: 1100px) {
+    .pipeline-wrapper {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .pipeline-arrow { transform: rotate(90deg); padding: 4px 0; }
+    .story-grid,
+    .bridge-flow,
+    .primer-hero,
+    .parity-grid,
+    .notation-grid,
+    .matrix-demo,
+    .roadmap,
+    .worked-grid,
+    .takeaway-list { grid-template-columns: 1fr; }
+    .circuit-sections { grid-template-columns: repeat(3, 1fr); }
+    .comparison-grid { grid-template-columns: 1fr; gap: 12px; }
+    .comp-vs { padding: 6px 0; }
+    .analogy-grid { grid-template-columns: 1fr; }
+    .analogy-arrow { padding: 6px 0; transform: rotate(90deg); }
+  }
+  @media (max-width: 700px) {
+    header h1 { font-size: 1.4rem; }
+    .gf2-grid { grid-template-columns: 1fr; }
+    .circuit-sections { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════  HEADER  ═══════════════════ -->
+<header>
+  <h1>Decoded Quantum <span class="accent">Interferometry</span></h1>
+  <p class="sub">
+    DQI = Interference-based: quantum mechanics + coding theory find good solutions without optimization.
+    Think of it like error correction in reverse.
+  </p>
+  <div class="brand-strip">
+    <span>Industry Sponsor</span>
+    <span>|</span>
+    <span>Hardware Platform</span>
+    <span>|</span>
+    <span>Research Partner</span>
+    <span>|</span>
+    <span>|Y&gt;Quantum 2026</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-section="section-why">A. Why Re-encode?</div>
+  <div class="tab" data-section="section-gf2">B. GF(2) &amp; Parity</div>
+  <div class="tab" data-section="section-transform">C. ILP → max-XORSAT</div>
+  <div class="tab" data-section="section-a">D. Pipeline</div>
+  <div class="tab" data-section="section-b">E. DQI vs QAOA</div>
+  <div class="tab" data-section="section-c">F. Error-Correction View</div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════  SECTION A  ═══════════════════ -->
+<section id="section-why" class="page-section active">
+  <span class="section-label">Section A</span>
+  <h2>Why DQI Re-encodes the Problem</h2>
+
+  <div class="story-grid">
+    <div class="story-card story-lead">
+      <h3>Start in business language</h3>
+      <p>The insurance challenge begins as a <strong>binary optimization problem</strong>: each coverage decision is a bit, and the model is written using prices, discounts, family rules, dependencies, incompatibilities, and package limits.</p>
+      <div class="formula-block">
+        choose x_i in {0,1}<br>
+        maximize business value<br>
+        subject to binary constraints
+      </div>
+      <p style="margin-top:12px">That is a normal ILP mindset: add variables, compare sums, and enforce rules with equalities or inequalities.</p>
+    </div>
+
+    <div class="story-card story-why">
+      <h3>What DQI wants instead</h3>
+      <p>DQI does not work directly with ordinary sums like <code>x_a + x_b &le; 1</code>. Its circuit is built around <strong>parity checks</strong>, so it wants statements of the form:</p>
+      <div class="formula-block">x_1 ⊕ x_4 ⊕ a_2 = 1</div>
+      <p>This is the language of <strong>max-XORSAT</strong>: XOR clauses over bits, sometimes with helper bits added.</p>
+    </div>
+
+    <div class="story-card story-circuit">
+      <h3>Why the translation matters</h3>
+      <p>The DQI circuit computes a <strong>syndrome</strong>: a record of which parity checks are satisfied or violated.</p>
+      <p style="margin-top:10px">If the problem is still written only as ordinary ILP sums and inequalities, there is no parity-check structure for the circuit to evaluate.</p>
+    </div>
+  </div>
+
+  <div class="bridge-flow">
+    <div class="bridge-step">
+      <div class="bridge-num">1</div>
+      <h4>Original rule</h4>
+      <p>Start from a binary ILP constraint written in plain optimization language.</p>
+    </div>
+    <div class="bridge-step">
+      <div class="bridge-num">2</div>
+      <h4>Ask what type it is</h4>
+      <p>Is it already a parity-like equality, or is it an inequality / logic rule that needs extra work?</p>
+    </div>
+    <div class="bridge-step">
+      <div class="bridge-num">3</div>
+      <h4>Introduce helper bits if needed</h4>
+      <p>Slack, carry, or intermediate logic bits help preserve the meaning of the original constraint.</p>
+    </div>
+    <div class="bridge-step">
+      <div class="bridge-num">4</div>
+      <h4>Rewrite as XOR clauses</h4>
+      <p>Each finished rule becomes a parity check that asks for even or odd parity.</p>
+    </div>
+    <div class="bridge-step">
+      <div class="bridge-num">5</div>
+      <h4>Feed DQI</h4>
+      <p>The clauses become the parity-check data that the quantum circuit and decoder operate on.</p>
+    </div>
+  </div>
+
+  <div class="worked-grid">
+    <div class="worked-card">
+      <h4>Rule that converts cleanly</h4>
+      <p>If you must choose exactly one of two options, parity already captures the rule.</p>
+      <div class="equation">
+        ILP: x_auto_basic + x_auto_enhanced = 1<br>
+        XOR: x_auto_basic ⊕ x_auto_enhanced = 1
+      </div>
+      <p><span class="exact">Good news.</span> For two binary variables, “sum equals 1” and “XOR equals 1” mean the same thing: exactly one bit is on.</p>
+    </div>
+
+    <div class="worked-card">
+      <h4>Rule that does not convert cleanly</h4>
+      <p>Many realistic constraints are not parity statements by themselves.</p>
+      <div class="equation">
+        ILP: x_gap + x_floater ≤ 1<br>
+        Wrong shortcut: x_gap ⊕ x_floater = ?<br>
+        Real move: add helper bits → build gadgets → get XOR clauses
+      </div>
+      <p><span class="approx">Important warning.</span> Taking an inequality “mod 2” usually loses the information you actually care about.</p>
+    </div>
+  </div>
+
+  <div class="key-insight">
+    <strong>Big picture:</strong> DQI is not solving a different business problem. It is solving the <em>same</em> business problem after that problem has been rewritten into a parity-check language that the circuit can understand.
+  </div>
+</section>
+
+<!-- ═══════════════════  SECTION B  ═══════════════════ -->
+<section id="section-gf2" class="page-section">
+  <span class="section-label">Section B</span>
+  <h2>GF(2), XOR, and Parity</h2>
+
+  <div class="primer-hero">
+    <div class="primer-card">
+      <h3>GF(2) is arithmetic on bits</h3>
+      <p><strong>GF(2)</strong> is the two-element field <code>{0,1}</code>. It is the natural arithmetic system when your variables are binary bits.</p>
+      <div class="gf2-grid">
+        <div class="gf2-chip">
+          <span class="label">Allowed values</span>
+          <span class="value">0 or 1</span>
+        </div>
+        <div class="gf2-chip">
+          <span class="label">Key rule</span>
+          <span class="value">1 + 1 = 0</span>
+        </div>
+        <div class="gf2-chip">
+          <span class="label">Meaning</span>
+          <span class="value">+ mod 2 = XOR</span>
+        </div>
+      </div>
+      <div class="formula-block">
+        x ⊕ y = x + y (mod 2)<br>
+        x ⊕ y ⊕ z = x + y + z (mod 2)
+      </div>
+
+      <table class="truth-table">
+        <tr><th>x</th><th>y</th><th>x ⊕ y</th></tr>
+        <tr><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>0</td><td>1</td><td>1</td></tr>
+        <tr><td>1</td><td>0</td><td>1</td></tr>
+        <tr><td>1</td><td>1</td><td>0</td></tr>
+      </table>
+
+      <table class="truth-table">
+        <tr><th>x</th><th>y</th><th>z</th><th>x + y + z (mod 2)</th></tr>
+        <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+        <tr><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+        <tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+        <tr><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+        <tr><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+        <tr><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+      </table>
+    </div>
+
+    <div class="primer-card">
+      <h3>What a parity clause is saying</h3>
+      <p>A clause like</p>
+      <div class="formula-block">x_1 ⊕ x_4 ⊕ a_2 = 1</div>
+      <p>does <strong>not</strong> mean “add these numbers in the usual sense.” It means:</p>
+      <ul>
+        <li>look only at the listed bits,</li>
+        <li>count whether an even or odd number of them are 1,</li>
+        <li>demand the required parity on the right-hand side.</li>
+      </ul>
+      <p style="margin-top:10px">If the clause equals <code>0</code>, it asks for <strong>even parity</strong>. If the clause equals <code>1</code>, it asks for <strong>odd parity</strong>.</p>
+    </div>
+  </div>
+
+  <div class="parity-grid">
+    <div class="parity-card">
+      <h4>Even parity</h4>
+      <p><code>x_a ⊕ x_b ⊕ x_c = 0</code> means the number of 1s among those bits must be even.</p>
+      <ul>
+        <li>Allowed examples: <code>000</code>, <code>011</code>, <code>101</code>, <code>110</code></li>
+        <li>Rejected examples: <code>001</code>, <code>010</code>, <code>100</code>, <code>111</code></li>
+      </ul>
+    </div>
+
+    <div class="parity-card">
+      <h4>Odd parity</h4>
+      <p><code>x_a ⊕ x_b ⊕ x_c = 1</code> means the number of 1s among those bits must be odd.</p>
+      <ul>
+        <li>Allowed examples: <code>001</code>, <code>010</code>, <code>100</code>, <code>111</code></li>
+        <li>Rejected examples: <code>000</code>, <code>011</code>, <code>101</code>, <code>110</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="warning-callout">
+    <strong>Student tip:</strong> When you see XOR, read it in words as “the parity of these bits.” That mental translation is much more helpful than trying to treat it like ordinary addition.
+  </div>
+
+  <div class="key-insight">
+    <strong>Bridge to the next section:</strong> One XOR clause is one parity check. A full DQI instance has <em>many</em> such clauses, and the next step is to organize them into a compact matrix form.
+  </div>
+</section>
+
+<!-- ═══════════════════  SECTION D  ═══════════════════ -->
+<section id="section-a" class="page-section">
+  <span class="section-label">Section D</span>
+  <h2>The DQI Pipeline</h2>
+
+  <div class="pipeline-wrapper" id="pipelineWrap">
+
+    <!-- ── Stage 1: ILP -> max-XORSAT ──────────────── -->
+    <div class="stage-card stage-1" id="stage1">
+      <div class="card-header">
+        <div class="stage-num">1</div>
+        <h3>ILP &rarr; max-XORSAT</h3>
+      </div>
+      <p>DQI cannot consume ordinary ILP constraints directly. We first rewrite the binary optimization problem as XOR parity checks over <strong>GF(2)</strong>, the arithmetic of bits. Sections A-C unpack that translation slowly; this card is the short version.</p>
+
+      <div style="margin-top:14px">
+        <div class="transform-row">
+          <span>&Sigma;x<sub>i</sub> = 1</span>
+          <span class="arr">&rarr;</span>
+          <span>x<sub>1</sub> &oplus; x<sub>2</sub> = 1 <span style="color:var(--green);font-weight:700">(exact)</span></span>
+        </div>
+        <div class="transform-row">
+          <span>&Sigma;x<sub>i</sub> &le; 1</span>
+          <span class="arr">&rarr;</span>
+          <span>introduce helper bits + gadget clauses</span>
+        </div>
+        <div class="transform-row">
+          <span>x<sub>a</sub>+x<sub>b</sub> &le; 1</span>
+          <span class="arr">&rarr;</span>
+          <span>rewrite with ancillas, then parity checks</span>
+        </div>
+      </div>
+
+      <div class="key-insight">
+        <strong>Key insight:</strong> In GF(2), addition means XOR and <code>1 + 1 = 0</code>.
+        Some binary equalities convert exactly; harder inequalities need auxiliary bits so the parity system stays faithful to the original ILP.
+      </div>
+
+      <div class="warning-callout">
+        <strong>Student tip:</strong> If you find yourself saying "just take the inequality mod 2," stop.
+        That usually throws away the information you care about. The gadget conversion exists to avoid that trap.
+      </div>
+
+      <div class="mini-matrix-wrap">
+        <div class="mini-matrix" id="matrixB">
+          <span class="label">Parity-check matrix B</span>
+          <div><span class="one">1</span> <span class="one">1</span> <span class="zero">0</span> <span class="zero">0</span> <span class="zero">0</span></div>
+          <div><span class="one">1</span> <span class="zero">0</span> <span class="one">1</span> <span class="zero">0</span> <span class="zero">0</span></div>
+          <div><span class="zero">0</span> <span class="zero">0</span> <span class="zero">0</span> <span class="one">1</span> <span class="one">1</span></div>
+          <div><span class="one">1</span> <span class="zero">0</span> <span class="zero">0</span> <span class="zero">0</span> <span class="one">1</span></div>
+        </div>
+        <div class="mini-matrix" id="vectorV">
+          <span class="label">Constraint vector v</span>
+          <div><span class="one">1</span></div>
+          <div><span class="one">1</span></div>
+          <div><span class="zero">0</span></div>
+          <div><span class="one">1</span></div>
+        </div>
+      </div>
+
+      <p style="margin-top:14px;font-size:.82rem;color:var(--gray-500)">
+        Need the full story? Read <strong>Sections A-C</strong> first for the motivation, the <code>GF(2)</code> background, and the meaning of <code>B y = v (mod 2)</code>.
+      </p>
+    </div>
+
+    <!-- arrow -->
+    <div class="pipeline-arrow">
+      <svg viewBox="0 0 38 38" fill="none"><path d="M6 19h22M22 12l6 7-6 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- ── Stage 2: DQI Circuit ────────────────────── -->
+    <div class="stage-card stage-2" id="stage2">
+      <div class="card-header">
+        <div class="stage-num">2</div>
+        <h3>Build &amp; Run the DQI Circuit</h3>
+      </div>
+      <p>A single quantum circuit -- no optimization loop. The interference does the work.</p>
+
+      <!-- ASCII-style circuit drawing on canvas -->
+      <div class="circuit-canvas-wrap">
+        <canvas id="circuitCanvas" height="220"></canvas>
+      </div>
+
+      <!-- Clickable sections -->
+      <div class="circuit-sections">
+        <div class="circ-sec active" data-sec="0" onclick="showCircSec(0)">
+          <div class="sec-num">Step 1</div>
+          <div class="sec-title">Dicke State</div>
+        </div>
+        <div class="circ-sec" data-sec="1" onclick="showCircSec(1)">
+          <div class="sec-num">Step 2</div>
+          <div class="sec-title">Phase Encoding</div>
+        </div>
+        <div class="circ-sec" data-sec="2" onclick="showCircSec(2)">
+          <div class="sec-num">Step 3</div>
+          <div class="sec-title">Syndrome Encoding</div>
+        </div>
+        <div class="circ-sec" data-sec="3" onclick="showCircSec(3)">
+          <div class="sec-num">Step 4</div>
+          <div class="sec-title">BP1 Decoder</div>
+        </div>
+        <div class="circ-sec" data-sec="4" onclick="showCircSec(4)">
+          <div class="sec-num">Step 5</div>
+          <div class="sec-title">H + Measure</div>
+        </div>
+      </div>
+
+      <div class="circuit-detail" id="circuitDetail"></div>
+
+      <div class="toggle-row">
+        <button class="toggle-btn" id="bMatrixToggle" onclick="toggleBMatrix()">Show B-matrix overlay on circuit</button>
+        <button class="toggle-btn" id="animBtn" onclick="animateFlow()">Animate quantum state flow</button>
+      </div>
+    </div>
+
+    <!-- arrow -->
+    <div class="pipeline-arrow">
+      <svg viewBox="0 0 38 38" fill="none"><path d="M6 19h22M22 12l6 7-6 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- ── Stage 3: Post-Selection ─────────────────── -->
+    <div class="stage-card stage-3" id="stage3">
+      <div class="card-header">
+        <div class="stage-num">3</div>
+        <h3>Post-Selection</h3>
+      </div>
+      <p>Measure all qubits. Keep only shots where the syndrome register reads <code>00...0</code>.</p>
+
+      <div class="shots-grid" id="shotsGrid"></div>
+
+      <div class="post-stats" id="postStats">
+        <div><span class="stat-val green" id="keepCount">--</span><br><small>kept (syndrome = 0)</small></div>
+        <div><span class="stat-val gray" id="discardCount">--</span><br><small>discarded</small></div>
+        <div><span class="stat-val green" id="keepRate">--%</span><br><small>post-selection rate</small></div>
+      </div>
+
+      <p style="margin-top:12px;font-size:.84rem;color:var(--gray-600)">
+        The kept shots are <strong>enriched in high-quality feasible solutions</strong>!
+        Interference concentrates probability on good answers.
+      </p>
+
+      <!-- histogram -->
+      <p style="margin-top:16px;font-size:.78rem;font-weight:600;color:var(--gray-500)">Solution quality distribution</p>
+      <div class="histogram" id="histogram"></div>
+      <div class="hist-labels"><span>Low quality</span><span>High quality</span></div>
+
+      <button class="toggle-btn" style="margin-top:14px" onclick="rerollShots()">Re-simulate shots</button>
+    </div>
+
+  </div><!-- /pipeline-wrapper -->
+</section>
+
+<!-- ═══════════════════  SECTION C  ═══════════════════ -->
+<section id="section-transform" class="page-section">
+  <span class="section-label">Section C</span>
+  <h2>From ILP to max-XORSAT, Step by Step</h2>
+
+  <div class="key-insight">
+    <strong>Goal of this section:</strong> keep the original optimization problem intact while rewriting it into a parity-check form. We are changing the <em>representation</em>, not the business meaning.
+  </div>
+
+  <div class="roadmap">
+    <div class="roadmap-step">
+      <div class="step-num">1</div>
+      <h4>Start with the original bits</h4>
+      <p>Write the business decisions as binary variables <code>x</code>. These are the choices you actually care about, like whether a coverage is selected.</p>
+    </div>
+    <div class="roadmap-step">
+      <div class="step-num">2</div>
+      <h4>Convert what converts exactly</h4>
+      <p>Some equalities already behave like parity rules. Those can become XOR clauses directly with no extra machinery.</p>
+    </div>
+    <div class="roadmap-step">
+      <div class="step-num">3</div>
+      <h4>Add helper bits when needed</h4>
+      <p>Inequalities and intermediate logic often need slack, carry, or ancilla bits so the rewritten system still means the same thing.</p>
+    </div>
+    <div class="roadmap-step">
+      <div class="step-num">4</div>
+      <h4>Stack the clauses</h4>
+      <p>Once every rule is written as a parity check, collect them into matrix form: <code>B y = v (mod 2)</code>.</p>
+    </div>
+  </div>
+
+  <div class="notation-grid">
+    <div class="notation-card">
+      <h4>x and y</h4>
+      <p><code>x</code> is the original decision vector. After adding helper bits, the enlarged vector of <em>all</em> bits is called <code>y</code>.</p>
+    </div>
+    <div class="notation-card">
+      <h4>B</h4>
+      <p>Each row of <code>B</code> describes one parity clause. A <code>1</code> means that variable participates in the clause; a <code>0</code> means it does not.</p>
+    </div>
+    <div class="notation-card">
+      <h4>v</h4>
+      <p>The entry <code>v_j</code> tells you whether row <code>j</code> wants even parity (<code>0</code>) or odd parity (<code>1</code>).</p>
+    </div>
+    <div class="notation-card">
+      <h4>Weights</h4>
+      <p>Feasibility is not the whole story. Weights carry information about solution quality so the encoding still reflects the objective, not just valid/invalid status.</p>
+    </div>
+  </div>
+
+  <div class="matrix-demo">
+    <div class="worked-card">
+      <h4>Three clauses become three rows</h4>
+      <p>Suppose one helper bit <code>a0</code> has been introduced and the rewritten parity checks are:</p>
+      <div class="equation">
+        clause 1: x0 ⊕ x1 = 1<br>
+        clause 2: x0 ⊕ a0 = 0<br>
+        clause 3: x2 ⊕ a0 = 1
+      </div>
+      <p>Read each line one by one. Clause 1 asks for odd parity on <code>x0</code> and <code>x1</code>. Clause 2 asks for even parity on <code>x0</code> and <code>a0</code>.</p>
+    </div>
+
+    <div class="worked-card">
+      <h4>Now package the same information</h4>
+      <div class="equation">
+        y = [x0, x1, x2, a0]^T<br><br>
+        B =<br>
+        [1 1 0 0]<br>
+        [1 0 0 1]<br>
+        [0 0 1 1]<br><br>
+        v = [1, 0, 1]^T
+      </div>
+      <p>Nothing new happened mathematically. We just compressed “many clause equations” into one matrix statement: <code>B y = v (mod 2)</code>.</p>
+    </div>
+  </div>
+
+  <div class="worked-grid">
+    <div class="worked-card">
+      <h4>Exact conversion</h4>
+      <p>Some families in the challenge naturally reduce to parity. With two mutually exclusive choices and a requirement to pick exactly one, XOR already says the right thing.</p>
+      <div class="equation">
+        ILP: x_auto_basic + x_auto_enhanced = 1<br>
+        XOR: x_auto_basic ⊕ x_auto_enhanced = 1
+      </div>
+      <p><span class="exact">Interpretation:</span> the row of <code>B</code> would place 1s under those two variables, and the matching entry of <code>v</code> would be <code>1</code>.</p>
+    </div>
+
+    <div class="worked-card">
+      <h4>Helper-bit conversion</h4>
+      <p>Constraints like incompatibilities and dependencies rarely become a single XOR clause on their own.</p>
+      <div class="equation">
+        ILP: x_gap + x_floater ≤ 1<br>
+        Not enough: x_gap ⊕ x_floater = ?<br>
+        Real path: helper bits + gadgets → several parity clauses
+      </div>
+      <p><span class="approx">Interpretation:</span> the helper bits are bookkeeping variables that let the parity system remember the logic of the original inequality.</p>
+    </div>
+  </div>
+
+  <div class="takeaway-strip">
+    <h3>What students should remember</h3>
+    <div class="takeaway-list">
+      <div class="takeaway-item"><strong>y = all bits.</strong> Start with the original decision bits and append helper bits only when needed.</div>
+      <div class="takeaway-item"><strong>B = clause membership.</strong> Each row records which bits participate in one parity check.</div>
+      <div class="takeaway-item"><strong>v = target parity.</strong> A 0 means even parity; a 1 means odd parity.</div>
+      <div class="takeaway-item"><strong>Weights keep the optimization goal alive.</strong> The encoding must still prefer better feasible solutions, not just any feasible solution.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════  SECTION E  ═══════════════════ -->
+<section id="section-b" class="page-section">
+  <span class="section-label">Section E</span>
+  <h2>DQI vs QAOA -- The Key Difference</h2>
+
+  <div class="comparison-grid">
+    <!-- QAOA -->
+    <div class="comp-card qaoa">
+      <h3>QAOA</h3>
+      <svg class="loop-diagram" width="220" height="160" viewBox="0 0 220 160">
+        <defs>
+          <marker id="arrOrange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="#E68A00"/>
+          </marker>
+        </defs>
+        <!-- boxes -->
+        <rect x="10" y="20" width="90" height="40" rx="8" fill="#FFF8E6" stroke="#E68A00" stroke-width="2"/>
+        <text x="55" y="45" text-anchor="middle" font-size="11" fill="#E68A00" font-weight="600">Classical</text>
+        <text x="55" y="56" text-anchor="middle" font-size="9" fill="#B36800">Optimizer</text>
+        <rect x="120" y="20" width="90" height="40" rx="8" fill="#FFF8E6" stroke="#E68A00" stroke-width="2"/>
+        <text x="165" y="45" text-anchor="middle" font-size="11" fill="#E68A00" font-weight="600">Quantum</text>
+        <text x="165" y="56" text-anchor="middle" font-size="9" fill="#B36800">Circuit</text>
+        <!-- arrows -->
+        <path d="M100,30 L120,30" stroke="#E68A00" stroke-width="2" marker-end="url(#arrOrange)"/>
+        <path d="M120,55 L100,55" stroke="#E68A00" stroke-width="2" marker-end="url(#arrOrange)"/>
+        <!-- loop label -->
+        <text x="110" y="17" text-anchor="middle" font-size="8" fill="#B36800">&gamma;, &beta;</text>
+        <text x="110" y="70" text-anchor="middle" font-size="8" fill="#B36800">&langle;C&rangle;</text>
+        <!-- repeat -->
+        <path d="M55,60 Q55,110 110,110 Q165,110 165,60" fill="none" stroke="#E68A00" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="110" y="126" text-anchor="middle" font-size="10" fill="#B36800" font-weight="600">Repeat 100-1000x</text>
+        <!-- iteration icons -->
+        <g transform="translate(60,135)">
+          <circle r="3" fill="#E68A00" opacity=".3"/>
+          <circle cx="12" r="3" fill="#E68A00" opacity=".4"/>
+          <circle cx="24" r="3" fill="#E68A00" opacity=".5"/>
+          <circle cx="36" r="3" fill="#E68A00" opacity=".6"/>
+          <circle cx="48" r="3" fill="#E68A00" opacity=".7"/>
+          <circle cx="60" r="3" fill="#E68A00" opacity=".8"/>
+          <circle cx="72" r="3" fill="#E68A00" opacity=".9"/>
+          <circle cx="84" r="3" fill="#E68A00"/>
+        </g>
+      </svg>
+      <div class="comp-text">
+        <strong>Variational:</strong> classical optimizer adjusts parameters &gamma;, &beta; over many iterations.
+        Each iteration runs the quantum circuit and feeds expectation values back.
+        <br><br>
+        <strong>Uses all measurements</strong> -- every shot contributes to the cost function estimate.
+        But requires many circuit evaluations to converge.
+      </div>
+    </div>
+
+    <div class="comp-vs">vs</div>
+
+    <!-- DQI -->
+    <div class="comp-card dqi">
+      <h3>DQI</h3>
+      <svg class="oneshot-diagram" width="220" height="160" viewBox="0 0 220 160">
+        <defs>
+          <marker id="arrBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="#0066CC"/>
+          </marker>
+        </defs>
+        <rect x="10" y="50" width="60" height="40" rx="8" fill="#EBF5FF" stroke="#0066CC" stroke-width="2"/>
+        <text x="40" y="73" text-anchor="middle" font-size="10" fill="#0066CC" font-weight="600">Circuit</text>
+        <path d="M70,70 L100,70" stroke="#0066CC" stroke-width="2.5" marker-end="url(#arrBlue)"/>
+        <rect x="102" y="50" width="52" height="40" rx="8" fill="#EBF5FF" stroke="#0066CC" stroke-width="2"/>
+        <text x="128" y="67" text-anchor="middle" font-size="9" fill="#0066CC" font-weight="600">Post-</text>
+        <text x="128" y="79" text-anchor="middle" font-size="9" fill="#0066CC" font-weight="600">select</text>
+        <path d="M154,70 L184,70" stroke="#1B9E4B" stroke-width="2.5" marker-end="url(#arrBlue)"/>
+        <rect x="186" y="50" width="30" height="40" rx="8" fill="#E6F9EE" stroke="#1B9E4B" stroke-width="2"/>
+        <text x="201" y="74" text-anchor="middle" font-size="16" fill="#1B9E4B">&#10003;</text>
+        <!-- ONE SHOT label -->
+        <text x="110" y="30" text-anchor="middle" font-size="14" fill="#0066CC" font-weight="800">ONE SHOT</text>
+        <text x="110" y="115" text-anchor="middle" font-size="10" fill="#0055AA">No optimization loop.</text>
+        <text x="110" y="130" text-anchor="middle" font-size="10" fill="#0055AA">Interference does the work.</text>
+        <text x="110" y="150" text-anchor="middle" font-size="9" fill="#737373">~10-30% of shots kept</text>
+      </svg>
+      <div class="comp-text">
+        <strong>One-shot:</strong> build the circuit once, run it, post-select on the syndrome register.
+        No classical optimization in the loop.
+        <br><br>
+        <strong>Throws away many measurements</strong> (post-selection), but the kept shots are enriched
+        in feasible, high-quality solutions via quantum interference.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════  SECTION F  ═══════════════════ -->
+<section id="section-c" class="page-section">
+  <span class="section-label">Section F</span>
+  <h2>The Error Correction Analogy</h2>
+
+  <button class="sidebar-toggle" id="sidebarBtn" onclick="toggleSidebar()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Expand: Why DQI looks like error correction in reverse
+  </button>
+
+  <div class="sidebar-panel" id="sidebarPanel">
+    <div class="sidebar-inner">
+      <p style="font-size:.92rem;margin-bottom:16px">
+        DQI borrows its mathematical machinery directly from classical error correction.
+        The parity check matrix <strong>B</strong> plays the same role as in LDPC codes, and the
+        <strong>BP1 decoder</strong> is literally one round of belief propagation -- the same algorithm
+        used to decode 5G and Wi-Fi error-correcting codes.
+      </p>
+
+      <div class="analogy-grid">
+        <div class="analogy-card ecc">
+          <h4>Classical Error Correction</h4>
+          <ul class="analogy-steps">
+            <li><span class="step-icon">1</span> Encode message with redundancy</li>
+            <li><span class="step-icon">2</span> Transmit through noisy channel</li>
+            <li><span class="step-icon">3</span> Compute syndrome = H &middot; received</li>
+            <li><span class="step-icon">4</span> BP decoder fixes errors</li>
+            <li><span class="step-icon">5</span> Recover original message</li>
+          </ul>
+        </div>
+
+        <div class="analogy-arrow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8 5l8 7-8 7" stroke="#A3A3A3" stroke-width="2" stroke-linecap="round"/></svg>
+          <br>same<br>math
+        </div>
+
+        <div class="analogy-card dqi-a">
+          <h4>DQI for Optimization</h4>
+          <ul class="analogy-steps">
+            <li><span class="step-icon">1</span> Encode ILP as parity checks (B, v)</li>
+            <li><span class="step-icon">2</span> Quantum interference explores solutions</li>
+            <li><span class="step-icon">3</span> Syndrome = B<sup>T</sup> &middot; y mod 2</li>
+            <li><span class="step-icon">4</span> BP1 decoder steers toward feasibility</li>
+            <li><span class="step-icon">5</span> Post-select on syndrome = 0 &rarr; solution!</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="key-insight" style="margin-top:20px">
+        <strong>The punchline:</strong> Instead of fixing errors in a transmitted message,
+        DQI uses the same parity-check + decoding framework to <em>find the best solution</em> to
+        an optimization problem. The "noise" is the search space; the "decoding" filters for feasibility.
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<!-- ═══════════════════  FOOTER  ═══════════════════ -->
+<div class="tagline">
+  <strong>"DQI = <span class="accent">Interference-based</span>: quantum mechanics + coding theory</strong><br>
+  find good solutions <strong>without optimization</strong>."<br>
+  <span style="font-size:.78rem;color:var(--gray-500);margin-top:6px;display:inline-block">
+    arXiv:2509.08328 &middot; |Y&gt;Quantum 2026 Hackathon &middot; Sponsor Challenge Materials
+  </span>
+</div>
+
+<!-- ═══════════════════  JAVASCRIPT  ═══════════════════ -->
+<script>
+// ─── Colors ───────────────────────────────────────────
+const C = {
+  red:'#E31837', charcoal:'#2D2926', light:'#F5F5F5',
+  blue:'#0066CC', yale:'#00356B', green:'#1B9E4B',
+  orange:'#E68A00', white:'#FFFFFF',
+  g300:'#D4D4D4', g400:'#A3A3A3', g500:'#737373', g600:'#525252'
+};
+
+// ─── Circuit Canvas ───────────────────────────────────
+const canvas = document.getElementById('circuitCanvas');
+const ctx = canvas.getContext('2d');
+let bMatrixVisible = false;
+let highlightSection = -1; // -1 = none
+
+function drawCircuit() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const W = Math.min(rect.width, 820);
+  canvas.style.width = W + 'px';
+  canvas.style.height = '220px';
+  canvas.width = W * dpr;
+  canvas.height = 220 * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.clearRect(0, 0, W, 220);
+
+  const nVar = 5, nSyn = 4;
+  const totalQ = nVar + nSyn;
+  const yStart = 24, yGap = 20;
+  const xLeft = 90, xRight = W - 30;
+  const wireLen = xRight - xLeft;
+
+  // Section boundaries (fraction of wire length)
+  const secs = [
+    {name:'Dicke', start:0, end:0.18, color:'#0066CC20'},
+    {name:'Phase', start:0.18, end:0.34, color:'#00356B18'},
+    {name:'Syndrome', start:0.34, end:0.56, color:'#E3183712'},
+    {name:'BP1', start:0.56, end:0.74, color:'#7C3AED12'},
+    {name:'H+Meas', start:0.74, end:1.0, color:'#1B9E4B15'},
+  ];
+
+  // highlight
+  secs.forEach((s,i) => {
+    const x0 = xLeft + s.start * wireLen;
+    const x1 = xLeft + s.end * wireLen;
+    let fill = s.color;
+    if (highlightSection === i) fill = s.color.slice(0,-2) + '50';
+    ctx.fillStyle = fill;
+    ctx.fillRect(x0, 0, x1 - x0, 220);
+    // border
+    if (highlightSection === i) {
+      ctx.strokeStyle = C.yale;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4,3]);
+      ctx.strokeRect(x0, 2, x1 - x0, 216);
+      ctx.setLineDash([]);
+    }
+  });
+
+  // labels on left
+  ctx.font = '600 11px "Segoe UI", sans-serif';
+  const labels = [
+    'x0 (var)','x1 (var)','x2 (var)','x3 (var)','x4 (var)',
+    's0 (syn)','s1 (syn)','s2 (syn)','s3 (syn)'
+  ];
+  labels.forEach((l, i) => {
+    const y = yStart + i * yGap;
+    ctx.fillStyle = i < nVar ? C.yale : C.green;
+    ctx.textAlign = 'right';
+    ctx.fillText(l, xLeft - 6, y + 4);
+  });
+
+  // Wires
+  for (let i = 0; i < totalQ; i++) {
+    const y = yStart + i * yGap;
+    ctx.strokeStyle = i < nVar ? '#00356B60' : '#1B9E4B60';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(xLeft, y); ctx.lineTo(xRight, y); ctx.stroke();
+  }
+
+  // separator line between var and syn registers
+  const sepY = yStart + (nVar - 0.5) * yGap;
+  ctx.strokeStyle = '#D4D4D4';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(xLeft, sepY); ctx.lineTo(xRight, sepY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── Section 1: Dicke state (box) ──
+  const dickeX = xLeft + 0.04 * wireLen;
+  const dickeW = 0.10 * wireLen;
+  ctx.fillStyle = '#EBF5FF';
+  ctx.strokeStyle = C.blue;
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, dickeX, yStart - 10, dickeW, nVar * yGap, 6, true, true);
+  ctx.fillStyle = C.blue;
+  ctx.font = '700 10px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('|D', dickeX + dickeW/2 - 6, yStart + nVar*yGap/2 - 2);
+  ctx.font = '700 8px "Segoe UI", sans-serif';
+  ctx.fillText('n,k', dickeX + dickeW/2 + 8, yStart + nVar*yGap/2 + 2);
+  ctx.fillText('>', dickeX + dickeW/2 + 18, yStart + nVar*yGap/2 - 2);
+
+  // |0> labels for syndrome
+  ctx.fillStyle = C.green;
+  ctx.font = '600 10px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  for (let i = 0; i < nSyn; i++) {
+    ctx.fillText('|0>', dickeX + dickeW/2, yStart + (nVar + i) * yGap + 4);
+  }
+
+  // ── Section 2: Phase encoding (Rz gates) ──
+  const phaseX = xLeft + 0.22 * wireLen;
+  ctx.font = '600 9px "Courier New", monospace';
+  for (let i = 0; i < nVar; i++) {
+    const y = yStart + i * yGap;
+    drawGateBox(ctx, phaseX, y, 'Rz', C.yale, '#EBF5FF');
+    // subscript
+    ctx.fillStyle = C.g500;
+    ctx.font = '500 7px "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('c'+i, phaseX + 16, y + 3);
+  }
+
+  // ── Section 3: Syndrome encoding (CNOTs) ──
+  // B matrix for the toy problem
+  const B = [
+    [1,1,0,0,0],
+    [1,0,1,0,0],
+    [0,0,0,1,1],
+    [1,0,0,0,1],
+  ];
+  const synBaseX = xLeft + 0.38 * wireLen;
+  const cnotSpacing = 0.03 * wireLen;
+  let cnotIdx = 0;
+  for (let row = 0; row < nSyn; row++) {
+    for (let col = 0; col < nVar; col++) {
+      if (B[row][col] === 1) {
+        const cx_ = synBaseX + cnotIdx * cnotSpacing;
+        const yCtrl = yStart + col * yGap;
+        const yTarg = yStart + (nVar + row) * yGap;
+        // line
+        ctx.strokeStyle = bMatrixVisible ? C.red : '#00356B80';
+        ctx.lineWidth = bMatrixVisible ? 1.8 : 1;
+        ctx.beginPath(); ctx.moveTo(cx_, yCtrl); ctx.lineTo(cx_, yTarg); ctx.stroke();
+        // control dot
+        ctx.fillStyle = bMatrixVisible ? C.red : C.yale;
+        ctx.beginPath(); ctx.arc(cx_, yCtrl, 3, 0, Math.PI*2); ctx.fill();
+        // target circle
+        ctx.strokeStyle = bMatrixVisible ? C.red : C.green;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(cx_, yTarg, 5, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx_, yTarg-5); ctx.lineTo(cx_, yTarg+5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx_-5, yTarg); ctx.lineTo(cx_+5, yTarg); ctx.stroke();
+
+        // B-matrix label
+        if (bMatrixVisible) {
+          ctx.fillStyle = C.red;
+          ctx.font = '600 7px "Segoe UI", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('B['+row+','+col+']', cx_, yTarg + 12);
+        }
+
+        cnotIdx++;
+      }
+    }
+  }
+
+  // ── Section 4: BP1 decoder (reverse CNOTs) ──
+  const bp1X = xLeft + 0.60 * wireLen;
+  const bp1Spacing = 0.025 * wireLen;
+  let bp1Idx = 0;
+  // simplified: show a few reverse CNOTs
+  const bp1Pairs = [[0,0],[1,0],[2,1],[3,2],[4,3]]; // syn->var
+  bp1Pairs.forEach(([v_,s_]) => {
+    const cx_ = bp1X + bp1Idx * bp1Spacing;
+    const yFrom = yStart + (nVar + s_) * yGap;
+    const yTo = yStart + v_ * yGap;
+    ctx.strokeStyle = '#7C3AED60';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx_, yFrom); ctx.lineTo(cx_, yTo); ctx.stroke();
+    // control on syndrome
+    ctx.fillStyle = '#7C3AED';
+    ctx.beginPath(); ctx.arc(cx_, yFrom, 3, 0, Math.PI*2); ctx.fill();
+    // target on variable
+    ctx.strokeStyle = '#7C3AED';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx_, yTo, 5, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx_, yTo-5); ctx.lineTo(cx_, yTo+5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx_-5, yTo); ctx.lineTo(cx_+5, yTo); ctx.stroke();
+    bp1Idx++;
+  });
+
+  // label
+  ctx.fillStyle = '#7C3AED';
+  ctx.font = '600 8px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('BP1', bp1X + 2.5 * bp1Spacing, yStart + totalQ * yGap + 6);
+
+  // ── Section 5: Hadamard + Measure ──
+  const hX = xLeft + 0.78 * wireLen;
+  // H gates on syndrome only
+  for (let i = 0; i < nSyn; i++) {
+    const y = yStart + (nVar + i) * yGap;
+    drawGateBox(ctx, hX, y, 'H', C.green, '#E6F9EE');
+  }
+
+  // Measurement symbols on all qubits
+  const mX = xLeft + 0.90 * wireLen;
+  for (let i = 0; i < totalQ; i++) {
+    const y = yStart + i * yGap;
+    const col = i < nVar ? C.yale : C.green;
+    // meter icon
+    ctx.fillStyle = '#FAFAFA';
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, mX - 8, y - 8, 16, 16, 3, true, true);
+    // arc
+    ctx.beginPath();
+    ctx.arc(mX, y + 1, 5, Math.PI, 0);
+    ctx.stroke();
+    // needle
+    ctx.beginPath();
+    ctx.moveTo(mX, y + 1);
+    ctx.lineTo(mX + 4, y - 5);
+    ctx.stroke();
+  }
+
+  // section labels at top
+  ctx.font = '600 8px "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  const secLabels = ['Dicke State','Phase Rz(c_i)','Syndrome B^T y','BP1 Decode','H + Measure'];
+  secs.forEach((s,i) => {
+    const xMid = xLeft + (s.start + s.end) / 2 * wireLen;
+    ctx.fillStyle = highlightSection === i ? C.yale : C.g500;
+    ctx.fillText(secLabels[i], xMid, 12);
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+function drawGateBox(ctx, x, y, label, borderColor, fillColor) {
+  ctx.fillStyle = fillColor;
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, x-12, y-9, 24, 18, 3, true, true);
+  ctx.fillStyle = borderColor;
+  ctx.font = '700 10px "Courier New", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, x, y + 4);
+}
+
+// ─── Circuit Section Details ──────────────────────────
+const secDetails = [
+  {
+    title: 'Step 1: Dicke State Preparation',
+    html: `<p>Start with an equal superposition of all <em>n</em>-bit strings with exactly <em>k</em> ones:</p>
+    <p style="margin:8px 0;font-family:monospace;font-size:.9rem">|D<sub>n,k</sub>> = (1/&radic;C(n,k)) &Sigma;<sub>|x|=k</sub> |x></p>
+    <p>The weight <em>k</em> is chosen based on how many 1s we expect in the optimal solution.
+    For weighted Dicke states, the amplitudes come from the principal eigenvector of a tridiagonal matrix.</p>
+    <div class="analogy">Analogy: Like dealing cards -- all possible hands of exactly <em>k</em> cards from a deck of <em>n</em>, held in quantum superposition at once.</div>`
+  },
+  {
+    title: 'Step 2: Phase Encoding',
+    html: `<p>Each variable qubit gets a phase kick proportional to its profit coefficient <code>c<sub>i</sub></code>:</p>
+    <p style="margin:8px 0;font-family:monospace;font-size:.9rem">Rz(c<sub>i</sub>) on qubit i &nbsp;&nbsp;(or Z gate when v<sub>i</sub> = 1)</p>
+    <p>This encodes the objective function into the quantum state. Better solutions accumulate different
+    total phases, setting up the interference that will happen later.</p>
+    <div class="analogy">Think of it like tuning forks -- each variable qubit vibrates at a frequency set by its profit. When they combine, the "chord" encodes the optimization landscape.</div>`
+  },
+  {
+    title: 'Step 3: Syndrome Encoding (CNOT Network)',
+    html: `<p>A network of CNOT gates computes the matrix-vector product <code>s = B<sup>T</sup> &middot; y mod 2</code>:</p>
+    <p>For each <span class="one" style="color:var(--red);font-weight:700">1</span> in B[j,i], place a CNOT from variable qubit <em>i</em> to syndrome qubit <em>j</em>.</p>
+    <p style="margin:8px 0">This is the heart of DQI: the syndrome register now holds the parity-check result --
+    does this assignment satisfy the XOR constraints?</p>
+    <p><strong>Click "Show B-matrix overlay"</strong> below to see which CNOTs correspond to which entries of B.</p>
+    <div class="analogy">Same as computing the syndrome in error correction: multiply the received word by the parity-check matrix to detect errors (constraint violations).</div>`
+  },
+  {
+    title: 'Step 4: BP1 Decoder (Belief Propagation Round 1)',
+    html: `<p>Classical decoding logic implemented as quantum gates. CNOTs go <strong>backward</strong> from syndrome qubits to variable qubits.</p>
+    <p>The decoder checks each variable: if <em>all</em> of its connected syndrome bits indicate a violation,
+    flip that variable (apply X). This is exactly one round of hard-decision belief propagation.</p>
+    <p style="margin:8px 0"><strong>Why just 1 round?</strong> For small problems, BP1 already corrects most "errors" (wrong variable assignments).
+    More rounds help for larger, sparser parity-check matrices.</p>
+    <div class="analogy">This is literally the same BP algorithm used to decode LDPC codes in 5G and Wi-Fi. Here it steers the quantum state toward feasible ILP solutions.</div>`
+  },
+  {
+    title: 'Step 5: Hadamard + Measurement',
+    html: `<p>Apply Hadamard gates <strong>only</strong> to the syndrome register, then measure everything.</p>
+    <p style="margin:8px 0">The Hadamard converts phase differences into amplitude differences via
+    <strong>quantum interference</strong>. States where the syndrome is zero (constraints satisfied) constructively
+    interfere; states with nonzero syndrome destructively interfere.</p>
+    <p>After measurement, we <strong>post-select</strong>: keep only outcomes where the syndrome register reads 00...0.
+    These are the "good" shots enriched with feasible solutions.</p>
+    <div class="analogy">Like noise-canceling headphones: the Hadamard makes the "wrong" answers cancel themselves out, while the "right" answers add up and become louder.</div>`
+  }
+];
+
+function showCircSec(idx) {
+  document.querySelectorAll('.circ-sec').forEach((el,i) => {
+    el.classList.toggle('active', i === idx);
+  });
+  const d = secDetails[idx];
+  document.getElementById('circuitDetail').innerHTML = '<h4>' + d.title + '</h4>' + d.html;
+  highlightSection = idx;
+  drawCircuit();
+}
+
+// B-matrix toggle
+function toggleBMatrix() {
+  bMatrixVisible = !bMatrixVisible;
+  const btn = document.getElementById('bMatrixToggle');
+  btn.classList.toggle('toggled', bMatrixVisible);
+  btn.textContent = bMatrixVisible ? 'Hide B-matrix overlay' : 'Show B-matrix overlay on circuit';
+  drawCircuit();
+}
+
+// ─── Flow animation ───────────────────────────────────
+function animateFlow() {
+  const btn = document.getElementById('animBtn');
+  btn.disabled = true;
+  btn.textContent = 'Animating...';
+
+  const rect = canvas.getBoundingClientRect();
+  const W = rect.width;
+  const xLeft_ = 90, wireLen_ = W - 30 - xLeft_;
+
+  // create dot
+  const dot = document.createElement('div');
+  dot.className = 'flow-dot';
+  canvas.parentElement.style.position = 'relative';
+  canvas.parentElement.appendChild(dot);
+
+  const yMid = 24 + 4 * 20; // middle wire
+  const keyframes = [
+    {x: xLeft_, y: yMid, t: 0},
+    {x: xLeft_ + 0.09 * wireLen_, y: yMid, t: 400},
+    {x: xLeft_ + 0.26 * wireLen_, y: yMid, t: 900},
+    {x: xLeft_ + 0.45 * wireLen_, y: yMid, t: 1500},
+    {x: xLeft_ + 0.65 * wireLen_, y: yMid, t: 2100},
+    {x: xLeft_ + 0.82 * wireLen_, y: yMid, t: 2700},
+    {x: xLeft_ + 0.95 * wireLen_, y: yMid, t: 3200},
+  ];
+
+  dot.style.opacity = '1';
+  let start = null;
+  const totalT = 3200;
+
+  function step(ts) {
+    if (!start) start = ts;
+    const elapsed = ts - start;
+    if (elapsed > totalT + 200) {
+      dot.style.opacity = '0';
+      setTimeout(() => {
+        dot.remove();
+        btn.disabled = false;
+        btn.textContent = 'Animate quantum state flow';
+      }, 300);
+      return;
+    }
+
+    // interpolate
+    let seg = 0;
+    for (let i = 0; i < keyframes.length - 1; i++) {
+      if (elapsed >= keyframes[i].t && elapsed < keyframes[i+1].t) { seg = i; break; }
+      if (i === keyframes.length - 2) seg = i;
+    }
+    const a = keyframes[seg], b_ = keyframes[Math.min(seg+1, keyframes.length-1)];
+    const frac = Math.min(1, (elapsed - a.t) / Math.max(1, b_.t - a.t));
+    const ex = frac * frac * (3 - 2 * frac); // smoothstep
+    const px = a.x + (b_.x - a.x) * ex;
+    const py = a.y + (b_.y - a.y) * ex;
+
+    dot.style.left = (px - 7) + 'px';
+    dot.style.top = (py - 7) + 'px';
+
+    // highlight corresponding section
+    const frac2 = px / (xLeft_ + wireLen_);
+    let newSec = -1;
+    const secs_ = [0,.18,.34,.56,.74,1];
+    for (let i = 0; i < secs_.length-1; i++) {
+      const sx = (xLeft_ + secs_[i] * wireLen_) / (xLeft_ + wireLen_);
+      const ex2 = (xLeft_ + secs_[i+1] * wireLen_) / (xLeft_ + wireLen_);
+      if (frac2 >= sx && frac2 < ex2) { newSec = i; break; }
+    }
+    if (newSec >= 0 && newSec !== highlightSection) {
+      showCircSec(newSec);
+    }
+
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ─── Post-selection shots ─────────────────────────────
+function generateShots() {
+  const grid = document.getElementById('shotsGrid');
+  grid.innerHTML = '';
+  const total = 120;
+  let kept = 0, discarded = 0;
+  const qualities = {kept:[], disc:[]};
+
+  for (let i = 0; i < total; i++) {
+    const div = document.createElement('div');
+    div.className = 'shot';
+    // ~22% post-selection rate, biased toward good quality
+    const isGood = Math.random() < 0.22;
+    const quality = isGood
+      ? 0.5 + Math.random() * 0.5  // good: 0.5-1.0
+      : Math.random() * 0.7;       // bad: 0-0.7
+    if (isGood) {
+      div.classList.add('good');
+      kept++;
+      qualities.kept.push(quality);
+    } else {
+      div.classList.add('bad');
+      discarded++;
+      qualities.disc.push(quality);
+    }
+    // delayed appearance
+    div.style.opacity = '0';
+    div.style.transform = 'scale(0.5)';
+    setTimeout(() => {
+      div.style.opacity = isGood ? '1' : '.5';
+      div.style.transform = 'scale(1)';
+    }, 20 + i * 18);
+
+    grid.appendChild(div);
+  }
+
+  document.getElementById('keepCount').textContent = kept;
+  document.getElementById('discardCount').textContent = discarded;
+  document.getElementById('keepRate').textContent = Math.round(100 * kept / total) + '%';
+
+  // histogram
+  drawHistogram(qualities);
+}
+
+function drawHistogram(qualities) {
+  const hist = document.getElementById('histogram');
+  hist.innerHTML = '';
+  const bins = 12;
+  const keptBins = new Array(bins).fill(0);
+  const discBins = new Array(bins).fill(0);
+
+  qualities.kept.forEach(q => { keptBins[Math.min(bins-1, Math.floor(q * bins))]++; });
+  qualities.disc.forEach(q => { discBins[Math.min(bins-1, Math.floor(q * bins))]++; });
+
+  const maxVal = Math.max(...keptBins, ...discBins, 1);
+
+  for (let i = 0; i < bins; i++) {
+    const wrap = document.createElement('div');
+    wrap.style.flex = '1';
+    wrap.style.display = 'flex';
+    wrap.style.flexDirection = 'column';
+    wrap.style.alignItems = 'center';
+    wrap.style.justifyContent = 'flex-end';
+    wrap.style.height = '80px';
+
+    // kept bar
+    const kBar = document.createElement('div');
+    kBar.className = 'hist-bar';
+    kBar.style.background = C.green;
+    kBar.style.width = '45%';
+    kBar.style.height = '0px';
+    kBar.style.display = 'inline-block';
+    kBar.style.marginRight = '1px';
+    setTimeout(() => { kBar.style.height = (keptBins[i] / maxVal * 70) + 'px'; }, 100 + i * 40);
+
+    const dBar = document.createElement('div');
+    dBar.className = 'hist-bar';
+    dBar.style.background = C.g300;
+    dBar.style.width = '45%';
+    dBar.style.height = '0px';
+    dBar.style.display = 'inline-block';
+    setTimeout(() => { dBar.style.height = (discBins[i] / maxVal * 70) + 'px'; }, 100 + i * 40);
+
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'flex-end';
+    row.style.width = '100%';
+    row.style.height = '100%';
+    row.appendChild(kBar);
+    row.appendChild(dBar);
+    wrap.appendChild(row);
+    hist.appendChild(wrap);
+  }
+}
+
+function rerollShots() { generateShots(); }
+
+// ─── Page tabs ────────────────────────────────────────
+let pipelineAnimated = false;
+
+function showPageSection(sectionId) {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.section === sectionId);
+  });
+  document.querySelectorAll('.page-section').forEach(section => {
+    section.classList.toggle('active', section.id === sectionId);
+  });
+
+  if (sectionId === 'section-a') {
+    requestAnimationFrame(() => {
+      drawCircuit();
+      if (!pipelineAnimated) {
+        animatePipelineEntrance();
+        pipelineAnimated = true;
+      }
+    });
+  }
+}
+
+// ─── Sidebar toggle ───────────────────────────────────
+function toggleSidebar() {
+  const btn = document.getElementById('sidebarBtn');
+  const panel = document.getElementById('sidebarPanel');
+  btn.classList.toggle('open');
+  panel.classList.toggle('open');
+}
+
+// ─── Pipeline entrance animation ──────────────────────
+function animatePipelineEntrance() {
+  const cards = document.querySelectorAll('.stage-card');
+  cards.forEach((card, i) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(24px)';
+    card.style.transition = 'opacity .6s ease, transform .6s ease';
+    setTimeout(() => {
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, 200 + i * 250);
+  });
+  const arrows = document.querySelectorAll('.pipeline-arrow');
+  arrows.forEach((a, i) => {
+    a.style.opacity = '0';
+    a.style.transition = 'opacity .4s ease';
+    setTimeout(() => { a.style.opacity = '1'; }, 500 + i * 250);
+  });
+}
+
+// ─── Init ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => showPageSection(tab.dataset.section));
+  });
+  showCircSec(0);
+  showPageSection('section-why');
+  generateShots();
+});
+window.addEventListener('resize', drawCircuit);
+</script>
+</body>
+</html>

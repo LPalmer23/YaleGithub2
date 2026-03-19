@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1.0">
+<title>QAOA vs DQI -- Head-to-Head Comparison | |Y>Quantum 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  /* ── Reset & Base ────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red: #E31837;
+    --qaoa: #0066CC;
+    --dqi: #00356B;
+    --charcoal: #2D2926;
+    --light: #F5F5F5;
+    --white: #FFFFFF;
+    --gold: #F2A900;
+    --green: #2E8B57;
+    --danger: #C0392B;
+  }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--light);
+    color: var(--charcoal);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Typography ──────────────────────────────────────── */
+  h1, h2, h3, h4 { font-weight: 700; }
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+  h3 { font-size: 1.3rem; }
+
+  /* ── Layout ──────────────────────────────────────────── */
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+
+  section {
+    padding: 3rem 0;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  section:last-child { border-bottom: none; }
+
+  /* ── HERO ─────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, var(--charcoal) 0%, #1a1a1a 100%);
+    color: var(--white);
+    padding: 2.5rem 0 2rem;
+    text-align: center;
+    border-bottom: 4px solid var(--red);
+  }
+  .hero h1 span.red { color: var(--red); }
+  .hero .subtitle {
+    font-size: 1.15rem;
+    opacity: 0.85;
+    margin-top: 0.5rem;
+    font-weight: 400;
+  }
+  .hero .badges {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .hero .badge {
+    display: inline-block;
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .badge-qaoa { background: var(--qaoa); color: #fff; }
+  .badge-dqi  { background: var(--dqi); color: #fff; }
+  .badge-red  { background: var(--red); color: #fff; }
+
+  /* ── SECTION A: Tale of Two Algorithms ───────────────── */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    margin-top: 1.5rem;
+  }
+  .algo-header {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 10px 10px 0 0;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .algo-header.qaoa-h { background: var(--qaoa); }
+  .algo-header.dqi-h  { background: var(--dqi); }
+  .vs-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0.5rem;
+  }
+  .vs-badge {
+    background: var(--red);
+    color: #fff;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .comp-row {
+    display: contents;
+    opacity: 0;
+    animation: fadeRow 0.4s ease forwards;
+  }
+  .comp-row:nth-child(2)  { animation-delay: 0.15s; }
+  .comp-row:nth-child(3)  { animation-delay: 0.30s; }
+  .comp-row:nth-child(4)  { animation-delay: 0.45s; }
+  .comp-row:nth-child(5)  { animation-delay: 0.60s; }
+  .comp-row:nth-child(6)  { animation-delay: 0.75s; }
+  .comp-row:nth-child(7)  { animation-delay: 0.90s; }
+  .comp-row:nth-child(8)  { animation-delay: 1.05s; }
+  .comp-row:nth-child(9)  { animation-delay: 1.20s; }
+  .comp-row:nth-child(10) { animation-delay: 1.35s; }
+
+  @keyframes fadeRow {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .comp-cell {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fff;
+    position: relative;
+    cursor: default;
+    transition: background 0.2s;
+  }
+  .comp-cell:hover { background: #f0f7ff; }
+  .comp-cell.qaoa-cell { border-left: 3px solid var(--qaoa); }
+  .comp-cell.dqi-cell  { border-right: 3px solid var(--dqi); }
+
+  .comp-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--charcoal);
+    background: var(--light);
+    border-bottom: 1px solid #e0e0e0;
+    text-align: center;
+  }
+
+  .comp-cell .cell-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+  .comp-cell .cell-detail {
+    font-size: 0.82rem;
+    color: #666;
+    line-height: 1.4;
+  }
+
+  /* Tooltip on hover */
+  .comp-cell .tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--charcoal);
+    color: #fff;
+    padding: 0.6rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    width: 280px;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    line-height: 1.4;
+  }
+  .comp-cell .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--charcoal);
+  }
+  .comp-cell:hover .tooltip { display: block; }
+
+  /* ── SECTION B: Resource Chart ───────────────────────── */
+  .chart-controls {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .chart-controls button {
+    padding: 0.5rem 1.2rem;
+    border: 2px solid var(--charcoal);
+    border-radius: 6px;
+    background: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+  }
+  .chart-controls button:hover { background: var(--light); }
+  .chart-controls button.active {
+    background: var(--charcoal);
+    color: #fff;
+  }
+  .chart-controls .toggle-group {
+    display: flex;
+    gap: 0;
+  }
+  .chart-controls .toggle-group button {
+    border-radius: 0;
+  }
+  .chart-controls .toggle-group button:first-child { border-radius: 6px 0 0 6px; }
+  .chart-controls .toggle-group button:last-child  { border-radius: 0 6px 6px 0; border-left: 0; }
+
+  .chart-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .chart-box {
+    position: relative;
+    height: 320px;
+  }
+  .chart-box canvas { width: 100% !important; height: 100% !important; }
+
+  .estimated-note {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+
+  /* ── SECTION C: Scaling Plot ─────────────────────────── */
+  .scaling-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    position: relative;
+  }
+  .scaling-chart-container {
+    position: relative;
+    height: 400px;
+  }
+  .scaling-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+  }
+  .scaling-annotation {
+    position: absolute;
+    right: 60px;
+    top: 50px;
+    background: var(--red);
+    color: #fff;
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    max-width: 280px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    opacity: 0;
+    animation: popIn 0.5s ease 3s forwards;
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .animate-btn {
+    padding: 0.6rem 1.5rem;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    transition: background 0.2s;
+  }
+  .animate-btn:hover { background: #c01530; }
+
+  /* ── SECTION D: Flowchart ────────────────────────────── */
+  .flowchart-svg-wrap {
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .flowchart-svg-wrap svg {
+    display: block;
+    margin: 0 auto;
+  }
+  .fc-node {
+    cursor: pointer;
+    transition: filter 0.2s;
+  }
+  .fc-node:hover { filter: brightness(0.92); }
+  .fc-tip {
+    display: none;
+    position: absolute;
+    background: var(--charcoal);
+    color: #fff;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    max-width: 260px;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    pointer-events: none;
+    line-height: 1.4;
+  }
+
+  /* ── SECTION E: Judging Cards ────────────────────────── */
+  .judge-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .judge-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-top: 4px solid var(--green);
+  }
+  .judge-card.bad { border-top-color: var(--danger); }
+  .judge-card h3 {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .judge-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .judge-card li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.95rem;
+    opacity: 0;
+  }
+  .judge-card li .icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.75rem;
+    color: #fff;
+  }
+  .icon-good { background: var(--green); }
+  .icon-bad  { background: var(--danger); }
+
+  @keyframes checkIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .judge-card li.visible {
+    animation: checkIn 0.35s ease forwards;
+  }
+
+  /* ── Footer ──────────────────────────────────────────── */
+  .footer {
+    text-align: center;
+    padding: 2rem 0;
+    font-size: 0.85rem;
+    color: #999;
+  }
+  .footer a { color: var(--red); text-decoration: none; }
+
+  /* ── Section label ───────────────────────────────────── */
+  .section-label {
+    display: inline-block;
+    background: var(--red);
+    color: #fff;
+    padding: 0.2rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .primer-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .primer-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-top: 4px solid var(--red);
+  }
+  .primer-card h3 {
+    font-size: 1rem;
+    margin-bottom: 0.45rem;
+    color: var(--charcoal);
+  }
+  .primer-card p,
+  .primer-card li {
+    font-size: 0.86rem;
+    color: #555;
+    line-height: 1.45;
+  }
+  .primer-card ul {
+    padding-left: 1.1rem;
+    margin-top: 0.35rem;
+  }
+  .evidence-note {
+    margin-top: 1.25rem;
+    background: #fff8e6;
+    border-left: 4px solid var(--gold);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    color: #5d4a1f;
+    font-size: 0.9rem;
+  }
+
+  /* ── Responsive tweaks for 1920 ──────────────────────── */
+  @media (min-width: 1920px) {
+    .container { max-width: 1600px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="container">
+    <h1>QAOA <span class="red">vs</span> DQI</h1>
+    <p class="subtitle">Head-to-Head Algorithm Comparison for P&amp;C Insurance Bundling Optimization</p>
+    <div class="badges">
+      <span class="badge badge-qaoa">QAOA -- Hardware Blue</span>
+      <span class="badge badge-red">|Y&gt;Quantum 2026</span>
+      <span class="badge badge-dqi">DQI -- Yale Blue</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION A: Tale of Two Algorithms
+     ═══════════════════════════════════════════════════════ -->
+<section id="section-a">
+  <div class="container">
+    <span class="section-label">Section A</span>
+    <h2>Tale of Two Algorithms</h2>
+    <p style="margin-bottom:0.5rem; color:#666;">Hover over any cell for a deeper explanation.</p>
+
+    <div class="primer-grid">
+      <div class="primer-card">
+        <h3>Read This Comparison in Three Passes</h3>
+        <p>Undergraduates usually get tripped up because quantum-computing comparisons mix three different questions:</p>
+        <ul>
+          <li><strong>Idea:</strong> how the algorithm searches for good solutions.</li>
+          <li><strong>Per-circuit resources:</strong> qubits, depth, and two-qubit gates for one run.</li>
+          <li><strong>Total workflow cost:</strong> optimizer iterations for QAOA versus post-selection losses for DQI.</li>
+        </ul>
+      </div>
+      <div class="primer-card">
+        <h3>Key Metrics</h3>
+        <ul>
+          <li><strong>Approximation ratio:</strong> quantum best / classical optimum.</li>
+          <li><strong>Feasibility rate:</strong> fraction of shots that decode to valid solutions.</li>
+          <li><strong>Post-selection rate:</strong> fraction of DQI shots with syndrome 0.</li>
+        </ul>
+      </div>
+      <div class="primer-card">
+        <h3>Evidence Status</h3>
+        <p>QAOA is older and better studied. DQI is newer and promising, but its performance depends on the problem encoding, decoder choice, and noise model.</p>
+      </div>
+    </div>
+
+    <div class="comparison-grid">
+      <!-- Header row -->
+      <div class="algo-header qaoa-h">QAOA</div>
+      <div class="vs-header"><div class="vs-badge">VS</div></div>
+      <div class="algo-header dqi-h">DQI</div>
+
+      <!-- Row 1: Philosophy -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">"Tune the circuit to find the answer"</div>
+          <div class="cell-detail">Iteratively adjust parameters to improve solution quality</div>
+          <div class="tooltip">QAOA treats the quantum circuit as a parameterized function and uses a classical optimizer to find the best angles. Think of it as gradient descent on a quantum energy landscape.</div>
+        </div>
+        <div class="comp-label">Philosophy</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">"Let interference find the answer"</div>
+          <div class="cell-detail">Quantum interference naturally amplifies correct solutions</div>
+          <div class="tooltip">DQI encodes the problem constraints into the circuit structure itself. Destructive interference suppresses wrong answers and constructive interference amplifies correct ones -- no tuning needed.</div>
+        </div>
+      </div>
+
+      <!-- Row 2: Analogy -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">Gradient descent on a quantum landscape</div>
+          <div class="cell-detail">Classical optimization of quantum expectation values</div>
+          <div class="tooltip">Just like training a neural network, QAOA adjusts parameters to minimize a cost function. The "landscape" is the expectation value of the cost Hamiltonian as a function of the circuit angles.</div>
+        </div>
+        <div class="comp-label">Analogy</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">Error correction in reverse</div>
+          <div class="cell-detail">Parity checks filter invalid solutions via syndrome measurement</div>
+          <div class="tooltip">In quantum error correction, you use parity checks and a decoder to diagnose errors. DQI borrows that mathematical structure: it rewrites the optimization problem as parity checks, then uses interference and decoding to enrich syndrome-0 outcomes.</div>
+        </div>
+      </div>
+
+      <!-- Row 3: Approach -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">Variational (optimizer in the loop)</div>
+          <div class="cell-detail">Requires many circuit evaluations to converge</div>
+          <div class="tooltip">Each iteration: (1) prepare circuit with current angles, (2) measure many shots, (3) estimate cost, (4) update angles via classical optimizer. Repeat until convergence or budget exhausted.</div>
+        </div>
+        <div class="comp-label">Approach</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">One-shot (no optimizer needed)</div>
+          <div class="cell-detail">Single circuit execution, then post-selection</div>
+          <div class="tooltip">DQI builds the problem into a fixed circuit, so there is no variational parameter search in the loop. That avoids QAOA-style optimizer landscapes, but the overall workflow still depends on the instance encoding, decoder, and post-selection rate.</div>
+        </div>
+      </div>
+
+      <!-- Row 4: Circuit -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">Cost layer (ZZPhase) + Mixer (Rx)</div>
+          <div class="cell-detail">Repeat p times: more layers = better approximation</div>
+          <div class="tooltip">Cost layer applies e^{-i*gamma*C} using ZZPhase gates (native on this hardware platform). Mixer layer applies e^{-i*beta*B} using Rx rotations. The parameter p controls circuit depth and solution quality.</div>
+        </div>
+        <div class="comp-label">Circuit</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">Dicke + Phase + Syndrome + Decoder</div>
+          <div class="cell-detail">Challenge pipeline: prepare, encode, compute syndrome, decode, measure</div>
+          <div class="tooltip">At a high level, DQI uses Fourier/interference ideas to reduce optimization to decoding. In this hackathon implementation, the teaching pipeline is Dicke state + phase encoding + syndrome computation + BP1-style decoding + final interference/measurement.</div>
+        </div>
+      </div>
+
+      <!-- Row 5: Parameters -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">2p tunable angles</div>
+          <div class="cell-detail">(gamma_1, beta_1, ..., gamma_p, beta_p)</div>
+          <div class="tooltip">For p=1: 2 parameters. For p=3: 6 parameters. More parameters can improve results but make optimization harder. The "barren plateau" phenomenon means gradients can vanish exponentially with qubit count.</div>
+        </div>
+        <div class="comp-label">Parameters</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">Zero tunable parameters!</div>
+          <div class="cell-detail">Circuit is fully determined by the problem structure</div>
+          <div class="tooltip">The main contrast with QAOA is that there is no variational angle search. The circuit is determined by the transformed instance, although practical performance still depends on decoder design, ancilla overhead, and noise.</div>
+        </div>
+      </div>
+
+      <!-- Row 6: Constraints -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">This challenge: penalty terms in the cost Hamiltonian</div>
+          <div class="cell-detail">Add lambda * (constraint violation)^2 to the objective</div>
+          <div class="tooltip">In this hackathon implementation, QAOA handles constraints with penalties. More broadly, the QAOA literature also includes constrained mixers and feasible-subspace variants, so penalties are a design choice here, not a universal rule.</div>
+        </div>
+        <div class="comp-label">Constraints</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">Parity check matrix (mod-2 encoding)</div>
+          <div class="cell-detail">Constraints encoded in binary matrix B</div>
+          <div class="tooltip">Constraints are transformed into a GF(2) parity-check system. Syndrome-0 means the transformed parity checks are satisfied. For industrial ILPs, that translation may require helper bits and gadget clauses, so students should think of this as an encoding pipeline, not a simple mod-2 shortcut.</div>
+        </div>
+      </div>
+
+      <!-- Row 7: Output -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">All measurements are candidates</div>
+          <div class="cell-detail">Every shot returns a bitstring that can be evaluated</div>
+          <div class="tooltip">QAOA uses every measurement -- no shots are discarded. Each bitstring is a candidate solution that can be checked against constraints and evaluated for cost. Best-of-K sampling is common.</div>
+        </div>
+        <div class="comp-label">Output</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">Post-select: only syndrome=0 kept</div>
+          <div class="cell-detail">Shots with wrong syndrome are discarded</div>
+          <div class="tooltip">Only measurements where the syndrome register reads all zeros are kept. This can discard a large fraction of shots, so DQI trades away sample efficiency in exchange for concentrating probability on transformed-instance feasibility.</div>
+        </div>
+      </div>
+
+      <!-- Row 8: Strength -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">Well-studied, tunable, uses all shots</div>
+          <div class="cell-detail">Large body of literature, flexible depth parameter</div>
+          <div class="tooltip">QAOA has been studied extensively since 2014 (Farhi, Goldstone, Gutmann). Performance guarantees exist for certain problems. The depth parameter p allows trading circuit depth for solution quality.</div>
+        </div>
+        <div class="comp-label">Key Strength</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">No optimization loop, interference-powered</div>
+          <div class="cell-detail">Avoids variational angle search</div>
+          <div class="tooltip">DQI's fixed-circuit design removes the classical optimizer from the loop. That is an attractive feature, but whether it wins in practice is still an empirical question that depends on structure, noise, and post-selection.</div>
+        </div>
+      </div>
+
+      <!-- Row 9: Weakness -->
+      <div class="comp-row" style="display:contents">
+        <div class="comp-cell qaoa-cell">
+          <div class="cell-title">Optimizer can get stuck</div>
+          <div class="cell-detail">Barren plateaus, many evaluations needed</div>
+          <div class="tooltip">For large n, the cost landscape can become exponentially flat (barren plateau), making it impossible to find good gradients. Each optimizer step requires many circuit shots, driving up total cost.</div>
+        </div>
+        <div class="comp-label">Key Weakness</div>
+        <div class="comp-cell dqi-cell">
+          <div class="cell-title">Lossy mod-2, throws away shots</div>
+          <div class="cell-detail">Post-selection success rate can be very low</div>
+          <div class="tooltip">A naive mod-2 conversion can lose information, which is why the industrial DQI pipeline uses helper bits and gadgets rather than simply taking every constraint modulo 2. Even with a careful encoding, low post-selection can still make the effective sample cost large.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="evidence-note">
+      <strong>What is settled, and what is still open?</strong> QAOA is the more mature variational baseline. DQI is a newer decoding-based approach with strong structure-aware motivation, but it should be presented to students as a promising method to benchmark, not as a universally superior replacement.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION B: Circuit Resource Comparison
+     ═══════════════════════════════════════════════════════ -->
+<section id="section-b">
+  <div class="container">
+    <span class="section-label">Section B</span>
+    <h2>Circuit Resource Comparison</h2>
+    <p style="color:#666; margin-bottom:1rem;">Click "Per-Package" to see the block-diagonal decomposition advantage. That view tracks the size of one package-local subproblem, not the full instance size.</p>
+
+    <div class="chart-controls">
+      <span style="font-weight:600; margin-right:0.5rem;">View:</span>
+      <div class="toggle-group">
+        <button class="active" id="btn-total" onclick="setChartView('total')">Total</button>
+        <button id="btn-perpkg" onclick="setChartView('perpkg')">Per-Package</button>
+      </div>
+      <span style="font-size:0.82rem; color:#999; margin-left:1rem;">Official benchmark sizes: n = 10, 21, 20, 50, 200. Per-package resources depend on N, so n does not increase monotonically with package-local difficulty.</span>
+    </div>
+
+    <div class="chart-wrapper">
+      <div class="chart-grid">
+        <div class="chart-box"><canvas id="chart-qubits"></canvas></div>
+        <div class="chart-box"><canvas id="chart-gates"></canvas></div>
+        <div class="chart-box"><canvas id="chart-depth"></canvas></div>
+      </div>
+      <p class="estimated-note">Values are estimated. Actual counts depend on implementation details and compiler optimizations.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION C: The Scaling Question
+     ═══════════════════════════════════════════════════════ -->
+<section id="section-c">
+  <div class="container">
+    <span class="section-label">Section C</span>
+    <h2>The Scaling Question</h2>
+    <p style="color:#666; margin-bottom:1rem;">How does solution quality degrade as problem size grows? This panel is <strong>conceptual</strong>: it frames the question your team must answer with measured data rather than giving the final answer for you.</p>
+
+    <button class="animate-btn" id="btn-animate" onclick="animateScaling()">Animate Scaling Curves</button>
+
+    <div class="scaling-wrapper">
+      <div class="scaling-chart-container">
+        <canvas id="chart-scaling"></canvas>
+      </div>
+      <div class="scaling-overlay">
+        <div class="scaling-annotation" id="scaling-anno">
+          At what n does one overtake the other?<br>That's YOUR job to find out!
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION D: Decision Flowchart
+     ═══════════════════════════════════════════════════════ -->
+<section id="section-d">
+  <div class="container">
+    <span class="section-label">Section D</span>
+    <h2>Decision Flowchart</h2>
+    <p style="color:#666; margin-bottom:1rem;">Click any node for tips on that step.</p>
+
+    <div class="flowchart-svg-wrap" style="position:relative;">
+      <div class="fc-tip" id="fc-tip"></div>
+      <svg viewBox="0 0 1100 680" width="1100" height="680" xmlns="http://www.w3.org/2000/svg" style="font-family: 'Segoe UI', system-ui, sans-serif;">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2D2926"/>
+          </marker>
+          <filter id="shadow" x="-4%" y="-4%" width="108%" height="116%">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.12"/>
+          </filter>
+        </defs>
+
+        <!-- Node 1: Start -->
+        <g class="fc-node" data-tip="Begin by understanding the official formal spec (YQH26.pdf). Identify the 20 coverages, 9 families, and 10 packages." onclick="showFcTip(evt, this)">
+          <circle cx="550" cy="40" r="30" fill="#E31837" filter="url(#shadow)"/>
+          <text x="550" y="45" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">START</text>
+        </g>
+
+        <!-- Arrow 1->2 -->
+        <line x1="550" y1="70" x2="550" y2="100" stroke="#2D2926" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- Node 2: Classical? -->
+        <g class="fc-node" data-tip="Use PuLP with solve_ilp() to get the classical optimum. This is your ground truth for computing approximation ratios." onclick="showFcTip(evt, this)">
+          <polygon points="550,105 700,145 550,185 400,145" fill="#F2A900" filter="url(#shadow)"/>
+          <text x="550" y="142" text-anchor="middle" fill="#2D2926" font-weight="700" font-size="13">Solved classically?</text>
+          <text x="550" y="158" text-anchor="middle" fill="#2D2926" font-size="11">PuLP + solve_ilp()</text>
+        </g>
+
+        <!-- No branch (left) -->
+        <line x1="400" y1="145" x2="260" y2="145" stroke="#C0392B" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="330" y="138" text-anchor="middle" fill="#C0392B" font-weight="700" font-size="12">No</text>
+
+        <g class="fc-node" data-tip="The classical baseline is essential. Without it you cannot compute approximation ratios. Use load_instance() to get the data, then solve_ilp()." onclick="showFcTip(evt, this)">
+          <rect x="110" y="120" width="150" height="50" rx="8" fill="#C0392B" filter="url(#shadow)"/>
+          <text x="185" y="143" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">Do that first!</text>
+          <text x="185" y="158" text-anchor="middle" fill="#fff" font-size="11">PuLP + solve_ilp()</text>
+        </g>
+
+        <!-- Arrow back up from "Do that first" -->
+        <path d="M 185 170 L 185 200 Q 185 210 195 210 L 530 210 Q 540 210 540 200 L 540 185" stroke="#C0392B" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arrow)"/>
+
+        <!-- Yes branch (down) -->
+        <line x1="550" y1="185" x2="550" y2="225" stroke="#2E8B57" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="565" y="208" fill="#2E8B57" font-weight="700" font-size="12">Yes</text>
+
+        <!-- Node 3: Pick size -->
+        <g class="fc-node" data-tip="Start small (n=10), verify correctness, then scale up. The official spec defines instances at n=10, 21, 20, 50, 200." onclick="showFcTip(evt, this)">
+          <rect x="440" y="230" width="220" height="45" rx="8" fill="#2D2926" filter="url(#shadow)"/>
+          <text x="550" y="257" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">Pick a problem size</text>
+        </g>
+
+        <!-- Three size branches -->
+        <line x1="480" y1="275" x2="250" y2="320" stroke="#2D2926" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="550" y1="275" x2="550" y2="320" stroke="#2D2926" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="620" y1="275" x2="850" y2="320" stroke="#2D2926" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- n=10 -->
+        <g class="fc-node" data-tip="At n=10, both algorithms should find near-optimal solutions. Use this to validate your pipeline and ensure QAOA converges and DQI post-selection works." onclick="showFcTip(evt, this)">
+          <rect x="150" y="325" width="200" height="40" rx="8" fill="#0066CC" filter="url(#shadow)" opacity="0.8"/>
+          <text x="250" y="340" text-anchor="middle" fill="#fff" font-weight="600" font-size="12">n=10: Both work well</text>
+          <text x="250" y="355" text-anchor="middle" fill="#fff" font-size="10">Validate pipeline</text>
+        </g>
+
+        <!-- n=21 -->
+        <g class="fc-node" data-tip="At n=21 (7 coverages x 3 packages), you should start seeing differences in approximation ratio. Track optimizer convergence for QAOA and post-selection rate for DQI." onclick="showFcTip(evt, this)">
+          <rect x="440" y="325" width="220" height="40" rx="8" fill="#00356B" filter="url(#shadow)" opacity="0.85"/>
+          <text x="550" y="340" text-anchor="middle" fill="#fff" font-weight="600" font-size="12">n=21: Start seeing differences</text>
+          <text x="550" y="355" text-anchor="middle" fill="#fff" font-size="10">Track metrics carefully</text>
+        </g>
+
+        <!-- n=50+ -->
+        <g class="fc-node" data-tip="At n=50+ the real scaling behavior emerges. QAOA optimizer may struggle (barren plateaus). DQI post-selection rate may drop. This is where your analysis matters most!" onclick="showFcTip(evt, this)">
+          <rect x="740" y="325" width="220" height="40" rx="8" fill="#E31837" filter="url(#shadow)" opacity="0.9"/>
+          <text x="850" y="340" text-anchor="middle" fill="#fff" font-weight="600" font-size="12">n=50+: Where it gets interesting</text>
+          <text x="850" y="355" text-anchor="middle" fill="#fff" font-size="10">Scaling differences emerge</text>
+        </g>
+
+        <!-- Converge lines to parallel box -->
+        <line x1="250" y1="365" x2="250" y2="400" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="550" y1="365" x2="550" y2="400" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="850" y1="365" x2="850" y2="400" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="250" y1="400" x2="850" y2="400" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="550" y1="400" x2="550" y2="420" stroke="#2D2926" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- Parallel: Run QAOA + Run DQI -->
+        <g class="fc-node" data-tip="Run both algorithms on the same instance! For QAOA, try p=1,2,3 and track optimizer iterations. For DQI, track post-selection rate and best bitstring cost." onclick="showFcTip(evt, this)">
+          <rect x="320" y="425" width="140" height="45" rx="8" fill="#0066CC" filter="url(#shadow)"/>
+          <text x="390" y="452" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">Run QAOA</text>
+        </g>
+        <g class="fc-node" data-tip="Run DQI on the same instance. Count qubits used (problem + syndrome + ancilla), post-selection success rate, and best solution found." onclick="showFcTip(evt, this)">
+          <rect x="640" y="425" width="140" height="45" rx="8" fill="#00356B" filter="url(#shadow)"/>
+          <text x="710" y="452" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">Run DQI</text>
+        </g>
+        <!-- Parallel bracket -->
+        <line x1="390" y1="425" x2="390" y2="415" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="710" y1="425" x2="710" y2="415" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="390" y1="415" x2="550" y2="415" stroke="none"/>
+        <line x1="710" y1="415" x2="550" y2="415" stroke="none"/>
+
+        <!-- Converge -->
+        <line x1="390" y1="470" x2="390" y2="495" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="710" y1="470" x2="710" y2="495" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="390" y1="495" x2="710" y2="495" stroke="#2D2926" stroke-width="1.5"/>
+        <line x1="550" y1="495" x2="550" y2="510" stroke="#2D2926" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- Node: Compare -->
+        <g class="fc-node" data-tip="Key metrics: approximation ratio = quantum_best / classical_optimum, wall-clock time, number of circuit evaluations, qubit count, 2-qubit gate count." onclick="showFcTip(evt, this)">
+          <rect x="400" y="515" width="300" height="40" rx="8" fill="#2D2926" filter="url(#shadow)"/>
+          <text x="550" y="540" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">Compare: quality, time, resources</text>
+        </g>
+
+        <line x1="550" y1="555" x2="550" y2="575" stroke="#2D2926" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- Node: Plot -->
+        <g class="fc-node" data-tip="Plot approximation ratio vs n for both algorithms. Add error bars from multiple random seeds. A log-scale x-axis may reveal power-law scaling." onclick="showFcTip(evt, this)">
+          <rect x="410" y="580" width="280" height="40" rx="8" fill="#2D2926" filter="url(#shadow)"/>
+          <text x="550" y="605" text-anchor="middle" fill="#fff" font-weight="700" font-size="13">Plot scaling curves</text>
+        </g>
+
+        <line x1="550" y1="620" x2="550" y2="640" stroke="#2D2926" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- Node: Analyze -->
+        <g class="fc-node" data-tip="Go beyond numbers! Explain WHY: Is QAOA struggling due to barren plateaus? Is DQI losing shots to post-selection? Does the block-diagonal structure help? This is what judges want." onclick="showFcTip(evt, this)">
+          <rect x="380" y="645" width="340" height="35" rx="8" fill="#E31837" filter="url(#shadow)"/>
+          <text x="550" y="668" text-anchor="middle" fill="#fff" font-weight="800" font-size="14">Analyze WHY they differ & Present!</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION E: What Judges Want to See
+     ═══════════════════════════════════════════════════════ -->
+<section id="section-e">
+  <div class="container">
+    <span class="section-label">Section E</span>
+    <h2>What Judges Want to See</h2>
+
+    <div class="judge-cards">
+      <!-- Good -->
+      <div class="judge-card" id="card-good">
+        <h3><span style="color:var(--green); font-size:1.5rem;">&#9679;</span> Strong Submission</h3>
+        <ul>
+          <li data-delay="200"><span class="icon icon-good">&#10003;</span> Ran both algorithms at 3+ problem sizes</li>
+          <li data-delay="400"><span class="icon icon-good">&#10003;</span> Validated against classical baseline (PuLP)</li>
+          <li data-delay="600"><span class="icon icon-good">&#10003;</span> Scaling plots with error bars from multiple seeds</li>
+          <li data-delay="800"><span class="icon icon-good">&#10003;</span> Explained WHY algorithms differ at each scale</li>
+          <li data-delay="1000"><span class="icon icon-good">&#10003;</span> Exploited block-diagonal structure (M sub-problems)</li>
+          <li data-delay="1200"><span class="icon icon-good">&#10003;</span> Reported circuit resource counts (qubits, gates, depth)</li>
+          <li data-delay="1400"><span class="icon icon-good">&#10003;</span> Clean, reproducible code with clear documentation</li>
+        </ul>
+      </div>
+
+      <!-- Bad -->
+      <div class="judge-card bad" id="card-bad">
+        <h3><span style="color:var(--danger); font-size:1.5rem;">&#9679;</span> Common Mistakes</h3>
+        <ul>
+          <li data-delay="300"><span class="icon icon-bad">&#10007;</span> Only ran one algorithm (no comparison!)</li>
+          <li data-delay="500"><span class="icon icon-bad">&#10007;</span> No classical baseline -- cannot compute approx. ratio</li>
+          <li data-delay="700"><span class="icon icon-bad">&#10007;</span> Only tested at one problem size -- no scaling insight</li>
+          <li data-delay="900"><span class="icon icon-bad">&#10007;</span> Reported numbers without explaining what they mean</li>
+          <li data-delay="1100"><span class="icon icon-bad">&#10007;</span> Ignored block-diagonal structure (wasted qubits)</li>
+          <li data-delay="1300"><span class="icon icon-bad">&#10007;</span> No error bars or statistical analysis</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    |Y&gt;Quantum 2026 &mdash; Sponsor Challenge Materials &mdash;
+    <a href="https://www.yquantum.org" target="_blank">yquantum.org</a>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════ -->
+<script>
+// ── Data ──────────────────────────────────────────────────
+const sizes = ['n=10', 'n=21', 'n=20', 'n=50', 'n=200'];
+
+// Total view data
+const totalData = {
+  qaoaQubits: [10, 21, 20, 50, 200],
+  dqiQubits:  [25, 50, 48, 120, 500],
+  qaoaGates:  [30, 70, 80, 200, 800],
+  dqiGates:   [80, 180, 180, 450, 1800],
+  qaoaDepth:  [15, 30, 60, 60, 200],
+  dqiDepth:   [40, 80, 150, 150, 500],
+};
+
+// Per-package view: QAOA decomposes to M sub-circuits
+// n=10 -> 2 pkgs of 5, n=21 -> 3 pkgs of 7, n=20 -> 2 pkgs of 10, n=50 -> 5 pkgs of 10, n=200 -> 10 pkgs of 20
+const perpkgData = {
+  qaoaQubits: [5, 7, 10, 10, 20],
+  dqiQubits:  [13, 17, 24, 24, 50],
+  qaoaGates:  [15, 23, 40, 40, 80],
+  dqiGates:   [40, 60, 90, 90, 180],
+  qaoaDepth:  [15, 30, 60, 60, 200],
+  dqiDepth:   [40, 80, 150, 150, 500],
+};
+
+let currentView = 'total';
+let chartInstances = {};
+
+// ── Chart.js setup ────────────────────────────────────────
+function makeBarChart(canvasId, title, qaoaData, dqiData) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+  chartInstances[canvasId] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sizes,
+      datasets: [
+        {
+          label: 'QAOA',
+          data: qaoaData,
+          backgroundColor: 'rgba(0,102,204,0.75)',
+          borderColor: '#0066CC',
+          borderWidth: 2,
+          borderRadius: 4,
+        },
+        {
+          label: 'DQI',
+          data: dqiData,
+          backgroundColor: 'rgba(0,53,107,0.75)',
+          borderColor: '#00356B',
+          borderWidth: 2,
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: title,
+          font: { size: 15, weight: 'bold' },
+          color: '#2D2926',
+        },
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 12, weight: '600' } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const suffix = currentView === 'perpkg' ? ' (per package)' : ' (total)';
+              return ctx.dataset.label + ': ~' + ctx.parsed.y.toLocaleString() + suffix;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: title.split(' ').pop(), font: { weight: '600' } },
+          grid: { color: 'rgba(0,0,0,0.06)' },
+        },
+        x: {
+          grid: { display: false },
+        }
+      },
+      animation: {
+        duration: 800,
+        easing: 'easeOutQuart',
+      }
+    }
+  });
+}
+
+function renderCharts() {
+  const d = currentView === 'total' ? totalData : perpkgData;
+  const suffix = currentView === 'total' ? '' : ' (Per Package)';
+  makeBarChart('chart-qubits', 'Qubits' + suffix, d.qaoaQubits, d.dqiQubits);
+  makeBarChart('chart-gates', '2-Qubit Gates (p=1)' + suffix, d.qaoaGates, d.dqiGates);
+  makeBarChart('chart-depth', 'Circuit Depth' + suffix, d.qaoaDepth, d.dqiDepth);
+}
+
+function setChartView(view) {
+  currentView = view;
+  document.getElementById('btn-total').classList.toggle('active', view === 'total');
+  document.getElementById('btn-perpkg').classList.toggle('active', view === 'perpkg');
+  renderCharts();
+}
+
+// ── Section C: Scaling Animation ──────────────────────────
+let scalingChart = null;
+let scalingAnimated = false;
+
+function buildScalingChart(animate) {
+  const ctx = document.getElementById('chart-scaling').getContext('2d');
+  if (scalingChart) scalingChart.destroy();
+
+  // Conceptual data with uncertainty
+  const qaoaMean  = [0.87, 0.82, 0.79, 0.72, 0.55];
+  const qaoaUpper = [0.92, 0.88, 0.85, 0.80, 0.65];
+  const qaoaLower = [0.82, 0.76, 0.73, 0.64, 0.45];
+  const dqiMean   = [0.78, 0.76, 0.74, 0.70, 0.62];
+  const dqiUpper  = [0.84, 0.82, 0.80, 0.78, 0.72];
+  const dqiLower  = [0.72, 0.70, 0.68, 0.62, 0.52];
+
+  const xLabels = [10, 21, 20, 50, 200];
+
+  scalingChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: xLabels,
+      datasets: [
+        // QAOA upper band (hidden from legend)
+        {
+          data: qaoaUpper,
+          borderColor: 'transparent',
+          backgroundColor: 'rgba(0,102,204,0.12)',
+          fill: '+1',
+          pointRadius: 0,
+          tension: 0.3,
+          label: '_qaoaUpper',
+        },
+        // QAOA lower band
+        {
+          data: qaoaLower,
+          borderColor: 'transparent',
+          backgroundColor: 'transparent',
+          fill: false,
+          pointRadius: 0,
+          tension: 0.3,
+          label: '_qaoaLower',
+        },
+        // QAOA mean
+        {
+          label: 'QAOA (p=1)',
+          data: animate ? [null, null, null, null, null] : qaoaMean,
+          borderColor: '#0066CC',
+          backgroundColor: '#0066CC',
+          borderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          tension: 0.3,
+          fill: false,
+        },
+        // DQI upper band
+        {
+          data: dqiUpper,
+          borderColor: 'transparent',
+          backgroundColor: 'rgba(0,53,107,0.12)',
+          fill: '+1',
+          pointRadius: 0,
+          tension: 0.3,
+          label: '_dqiUpper',
+        },
+        // DQI lower band
+        {
+          data: dqiLower,
+          borderColor: 'transparent',
+          backgroundColor: 'transparent',
+          fill: false,
+          pointRadius: 0,
+          tension: 0.3,
+          label: '_dqiLower',
+        },
+        // DQI mean
+        {
+          label: 'DQI',
+          data: animate ? [null, null, null, null, null] : dqiMean,
+          borderColor: '#00356B',
+          backgroundColor: '#00356B',
+          borderWidth: 3,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          tension: 0.3,
+          fill: false,
+          borderDash: [8, 4],
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Approximation Ratio vs Problem Size (Conceptual)',
+          font: { size: 16, weight: 'bold' },
+          color: '#2D2926',
+        },
+        legend: {
+          position: 'bottom',
+          labels: {
+            filter: function(item) { return !item.text.startsWith('_'); },
+            font: { size: 13, weight: '600' },
+          }
+        },
+        tooltip: {
+          filter: function(item) { return !item.dataset.label.startsWith('_'); },
+          callbacks: {
+            label: function(ctx) {
+              if (ctx.parsed.y === null) return '';
+              return ctx.dataset.label + ': ~' + ctx.parsed.y.toFixed(2);
+            }
+          }
+        },
+        annotation: undefined,
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Problem size n (binary variables)', font: { size: 13, weight: '600' } },
+          grid: { color: 'rgba(0,0,0,0.06)' },
+          type: 'category',
+        },
+        y: {
+          min: 0.3,
+          max: 1.0,
+          title: { display: true, text: 'Approximation Ratio (higher = better)', font: { size: 13, weight: '600' } },
+          grid: { color: 'rgba(0,0,0,0.06)' },
+        }
+      },
+      animation: {
+        duration: animate ? 0 : 800,
+      }
+    }
+  });
+
+  // Animate: reveal points one at a time
+  if (animate) {
+    const qaoaMeanData = [0.87, 0.82, 0.79, 0.72, 0.55];
+    const dqiMeanData  = [0.78, 0.76, 0.74, 0.70, 0.62];
+    let step = 0;
+    const interval = setInterval(() => {
+      if (step >= 5) {
+        clearInterval(interval);
+        // Show annotation
+        document.getElementById('scaling-anno').style.animation = 'popIn 0.5s ease forwards';
+        return;
+      }
+      scalingChart.data.datasets[2].data[step] = qaoaMeanData[step];
+      scalingChart.data.datasets[5].data[step] = dqiMeanData[step];
+      scalingChart.update('none');
+      step++;
+    }, 600);
+  }
+}
+
+function animateScaling() {
+  document.getElementById('scaling-anno').style.animation = 'none';
+  document.getElementById('scaling-anno').style.opacity = '0';
+  buildScalingChart(true);
+}
+
+// ── Section D: Flowchart Tips ─────────────────────────────
+function showFcTip(evt, el) {
+  const tip = document.getElementById('fc-tip');
+  const text = el.getAttribute('data-tip');
+  if (!text) return;
+
+  tip.textContent = text;
+  tip.style.display = 'block';
+
+  const wrap = el.closest('.flowchart-svg-wrap');
+  const wrapRect = wrap.getBoundingClientRect();
+  const x = evt.clientX - wrapRect.left + 15;
+  const y = evt.clientY - wrapRect.top - 10;
+
+  tip.style.left = Math.min(x, wrapRect.width - 280) + 'px';
+  tip.style.top = y + 'px';
+
+  clearTimeout(window._fcTipTimer);
+  window._fcTipTimer = setTimeout(() => { tip.style.display = 'none'; }, 4000);
+}
+
+// ── Section E: Animate checkmarks on scroll ───────────────
+function observeCards() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const items = entry.target.querySelectorAll('li');
+        items.forEach((li, i) => {
+          const delay = parseInt(li.getAttribute('data-delay')) || i * 200;
+          setTimeout(() => li.classList.add('visible'), delay);
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  observer.observe(document.getElementById('card-good'));
+  observer.observe(document.getElementById('card-bad'));
+}
+
+// ── Init ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderCharts();
+  buildScalingChart(false);
+  observeCards();
+});
+</script>
+</body>
+</html>

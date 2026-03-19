@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Scaling Analysis - Insurance Bundling QUBO</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --accent-red: #E31837;
+    --qaoa-blue: #0066CC;
+    --dqi-dark: #00356B;
+    --classical-green: #2D8C3C;
+    --charcoal: #2D2926;
+    --light-gray: #F5F5F5;
+    --mid-gray: #E0E0E0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--light-gray);
+    color: var(--charcoal);
+    width: 1920px;
+    min-height: 1080px;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--charcoal) 0%, #1a1816 100%);
+    color: white;
+    padding: 18px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 4px solid var(--accent-red);
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .header h1 span { color: var(--accent-red); }
+  .header .subtitle {
+    font-size: 14px;
+    opacity: 0.7;
+    font-weight: 400;
+  }
+  .header .legend {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  /* Main layout */
+  .main {
+    display: grid;
+    grid-template-rows: auto auto auto auto;
+    gap: 0;
+    padding: 0;
+  }
+
+  /* Section headers */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent-red);
+    margin-bottom: 10px;
+  }
+  .assumption-box {
+    background: #fff7f8;
+    border-left: 4px solid var(--accent-red);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .assumption-box .title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--charcoal);
+  }
+  .assumption-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .assumption-item {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(227,24,55,0.12);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #555;
+  }
+  .assumption-item strong {
+    display: block;
+    color: var(--charcoal);
+    margin-bottom: 3px;
+  }
+  .chart-note,
+  .table-note {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.45;
+    margin-bottom: 12px;
+  }
+
+  /* ============ SECTION A: Problem Size Explorer ============ */
+  .section-a {
+    background: white;
+    padding: 20px 48px 16px;
+    border-bottom: 1px solid var(--mid-gray);
+  }
+  .section-a-inner {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  /* Tabs */
+  .size-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    background: var(--light-gray);
+    border-radius: 8px;
+    padding: 3px;
+    width: fit-content;
+  }
+  .size-tab {
+    padding: 8px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  .size-tab:hover { color: var(--charcoal); }
+  .size-tab.active {
+    background: var(--accent-red);
+    color: white;
+    box-shadow: 0 2px 8px rgba(227,24,55,0.3);
+  }
+  .size-tab .tab-n {
+    font-size: 18px;
+    font-weight: 800;
+    display: block;
+    line-height: 1;
+  }
+  .size-tab .tab-desc {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.8;
+  }
+
+  /* Explorer content */
+  .explorer-content {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+    flex: 1;
+  }
+
+  /* Coverage + Package visual */
+  .problem-visual {
+    flex: 0 0 360px;
+  }
+  .problem-info {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--charcoal);
+  }
+  .problem-info .formula {
+    color: var(--accent-red);
+    font-weight: 700;
+  }
+  .problem-tagline {
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+
+  .visual-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .visual-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .visual-col-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    margin-bottom: 2px;
+  }
+
+  .coverage-card {
+    width: 28px;
+    height: 16px;
+    border-radius: 3px;
+    background: var(--qaoa-blue);
+    opacity: 0.7;
+    transition: all 0.4s ease;
+  }
+  .coverage-card.mandatory { opacity: 1; }
+
+  .package-box {
+    width: 40px;
+    height: 28px;
+    border-radius: 4px;
+    background: var(--dqi-dark);
+    opacity: 0.8;
+    transition: all 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  .coverages-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    max-width: 170px;
+  }
+  .packages-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    max-width: 120px;
+  }
+
+  /* QUBO matrix visualization */
+  .qubo-visual {
+    flex: 1;
+    min-width: 0;
+  }
+  .qubo-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .qubo-matrix-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .qubo-block {
+    position: absolute;
+    background: var(--accent-red);
+    opacity: 0.15;
+    border: 1px solid var(--accent-red);
+    border-radius: 2px;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .qubo-block-inner {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(227,24,55,0.4), rgba(227,24,55,0.1));
+  }
+  .qubo-dims {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ============ SECTION B: Resource Scaling Charts ============ */
+  .section-b {
+    background: white;
+    padding: 16px 48px 12px;
+    border-bottom: 1px solid var(--mid-gray);
+  }
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .chart-card {
+    background: var(--light-gray);
+    border-radius: 8px;
+    padding: 12px 14px;
+    position: relative;
+  }
+  .chart-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--charcoal);
+    margin-bottom: 8px;
+  }
+  .chart-wrapper {
+    position: relative;
+    height: 160px;
+  }
+
+  /* ============ SECTION C: Block Diagonal Advantage ============ */
+  .section-c {
+    background: linear-gradient(135deg, var(--charcoal) 0%, #1a1816 100%);
+    color: white;
+    padding: 20px 48px 16px;
+    border-bottom: 1px solid var(--mid-gray);
+  }
+  .section-c .section-label { color: #ff6b7f; }
+
+  .block-animation-area {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    min-height: 180px;
+  }
+
+  .block-matrix-stage {
+    flex: 0 0 220px;
+    height: 180px;
+    position: relative;
+  }
+
+  .anim-matrix {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    margin: 0 auto;
+  }
+  .anim-block {
+    position: absolute;
+    border-radius: 2px;
+    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  .anim-block-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--accent-red), #ff6b7f);
+    opacity: 0.7;
+  }
+  .anim-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 180px;
+    height: 180px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.03);
+    transition: opacity 0.5s;
+  }
+
+  .block-narration {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .narration-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .narration-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    opacity: 0.25;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateX(10px);
+  }
+  .narration-step.active {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .narration-step.past {
+    opacity: 0.5;
+    transform: translateX(0);
+  }
+  .step-num {
+    flex: 0 0 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 0.5s;
+  }
+  .narration-step.active .step-num {
+    background: var(--accent-red);
+  }
+  .step-text {
+    font-size: 14px;
+    line-height: 1.4;
+    padding-top: 3px;
+  }
+  .step-text strong { color: #ff6b7f; }
+  .step-text .highlight {
+    color: #5bf;
+    font-weight: 700;
+  }
+
+  .anim-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .anim-btn {
+    padding: 6px 16px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .anim-btn:hover { background: rgba(255,255,255,0.2); }
+  .anim-btn.primary {
+    background: var(--accent-red);
+    border-color: var(--accent-red);
+  }
+
+  /* Key insight box */
+  .insight-box {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: rgba(227,24,55,0.15);
+    border: 1px solid rgba(227,24,55,0.3);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.6s ease;
+  }
+  .insight-box.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .insight-box .big { font-size: 20px; color: #ff6b7f; }
+
+  /* ============ SECTION D: Scaling Summary Table ============ */
+  .section-d {
+    background: white;
+    padding: 14px 48px 18px;
+  }
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .summary-table thead th {
+    background: var(--charcoal);
+    color: white;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .summary-table thead th:first-child { border-radius: 6px 0 0 0; }
+  .summary-table thead th:last-child { border-radius: 0 6px 0 0; }
+  .summary-table tbody td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+  }
+  .summary-table tbody tr:hover { background: #fafafa; }
+  .summary-table tbody tr.active-row {
+    background: rgba(227,24,55,0.06);
+    font-weight: 600;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-easy { background: #d4edda; color: #155724; }
+  .badge-yes { background: #cce5ff; color: #004085; }
+  .badge-tight { background: #fff3cd; color: #856404; }
+  .badge-challenge { background: #f8d7da; color: #721c24; }
+  .badge-hard { background: #721c24; color: white; }
+
+  .hw-line-label {
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeInUp 0.5s ease forwards; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1><span>|Y></span>Quantum 2026 &mdash; Scaling Analysis</h1>
+    <div class="subtitle">Insurance Bundling QUBO: Problem Size vs Quantum Resources</div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--qaoa-blue)"></div> QAOA</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--dqi-dark)"></div> DQI</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--classical-green)"></div> Classical</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent-red)"></div> Challenge</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- SECTION A: Problem Size Explorer -->
+  <div class="section-a">
+    <div class="section-label">A &middot; Problem Size Explorer</div>
+    <div class="assumption-box">
+      <div class="title">Read This Page Using Three Different Size Variables</div>
+      <div class="assumption-grid">
+        <div class="assumption-item">
+          <strong>Full size n</strong>
+          Total binary variables in the full benchmark instance. In this challenge, <code>n = N x M</code>.
+        </div>
+        <div class="assumption-item">
+          <strong>Package-local size N</strong>
+          Variables inside one package block. Per-package quantum resources are driven mostly by <code>N</code>, not full <code>n</code>.
+        </div>
+        <div class="assumption-item">
+          <strong>Number of blocks M</strong>
+          How many independent package sub-problems exist. Larger <code>M</code> raises total workflow cost even when per-block circuits stay small.
+        </div>
+        <div class="assumption-item">
+          <strong>Official benchmark set</strong>
+          The tabs follow the challenge benchmark set <code>10, 21, 20, 50, 200</code>. That order is not numerically sorted because each point uses a different <code>(N,M)</code> pair.
+        </div>
+      </div>
+    </div>
+    <div class="size-tabs" id="sizeTabs">
+      <button class="size-tab active" data-idx="0"><span class="tab-n">n=10</span><span class="tab-desc">5 x 2</span></button>
+      <button class="size-tab" data-idx="1"><span class="tab-n">n=21</span><span class="tab-desc">7 x 3</span></button>
+      <button class="size-tab" data-idx="2"><span class="tab-n">n=20</span><span class="tab-desc">10 x 2</span></button>
+      <button class="size-tab" data-idx="3"><span class="tab-n">n=50</span><span class="tab-desc">10 x 5</span></button>
+      <button class="size-tab" data-idx="4"><span class="tab-n">n=200</span><span class="tab-desc">20 x 10</span></button>
+    </div>
+    <div class="section-a-inner">
+      <div class="explorer-content">
+        <div class="problem-visual">
+          <div class="problem-info" id="problemInfo"></div>
+          <div class="problem-tagline" id="problemTagline"></div>
+          <div class="visual-row">
+            <div class="visual-col">
+              <div class="visual-col-label">Coverages (N)</div>
+              <div class="coverages-grid" id="coveragesGrid"></div>
+            </div>
+            <div class="visual-col">
+              <div class="visual-col-label">Packages (M)</div>
+              <div class="packages-grid" id="packagesGrid"></div>
+            </div>
+          </div>
+        </div>
+        <div class="qubo-visual">
+          <div class="qubo-label">QUBO Matrix Structure</div>
+          <div class="qubo-matrix-container" id="quboMatrix"></div>
+          <div class="qubo-dims" id="quboDims"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION B: Resource Scaling Charts -->
+  <div class="section-b">
+    <div class="section-label">B &middot; Resource Scaling</div>
+    <div class="chart-note">
+      These charts are <strong>illustrative teaching models</strong>, not compiler-certified hardware counts. QAOA lines show the logical problem register for one package-local subproblem. DQI lines include a simple syndrome/ancilla overhead model, so they should be read as “problem qubits + extra decoding workspace.”
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Logical Qubits per Sub-problem</h3>
+        <div class="chart-wrapper"><canvas id="chartQubits"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Two-Qubit Gate Count</h3>
+        <div class="chart-wrapper"><canvas id="chartGates"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Circuit Depth</h3>
+        <div class="chart-wrapper"><canvas id="chartDepth"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Classical Solve Time (seconds)</h3>
+        <div class="chart-wrapper"><canvas id="chartClassical"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION C: Block Diagonal Advantage -->
+  <div class="section-c">
+    <div class="section-label">C &middot; The Block-Diagonal Advantage</div>
+    <div class="block-animation-area">
+      <div class="block-matrix-stage">
+        <div class="anim-matrix" id="animMatrix">
+          <div class="anim-bg" id="animBg"></div>
+        </div>
+      </div>
+      <div class="block-narration">
+        <div class="narration-steps" id="narrationSteps">
+          <div class="narration-step active" data-step="0">
+            <div class="step-num">1</div>
+            <div class="step-text">The full QUBO is <strong>200 x 200</strong> &mdash; looks like a 200-qubit nightmare.</div>
+          </div>
+          <div class="narration-step" data-step="1">
+            <div class="step-num">2</div>
+            <div class="step-text">But zoom in: it has <strong>10 blocks of 20 x 20</strong> on the diagonal. Off-diagonal? All zeros.</div>
+          </div>
+          <div class="narration-step" data-step="2">
+            <div class="step-num">3</div>
+            <div class="step-text">These blocks are <strong>INDEPENDENT</strong>! Each package is its own sub-problem.</div>
+          </div>
+          <div class="narration-step" data-step="3">
+            <div class="step-num">4</div>
+            <div class="step-text">Instead of one <span class="highlight">200-variable</span> logical problem register, work with <span class="highlight">ten 20-variable</span> package-local subproblems.</div>
+          </div>
+          <div class="narration-step" data-step="4">
+            <div class="step-num">5</div>
+            <div class="step-text">The block structure reduces the <strong>logical problem register</strong> from 200 variables to 20 variables per package. Whether the full algorithm fits still depends on ancillas, syndrome qubits, and the hardware model.</div>
+          </div>
+        </div>
+        <div class="anim-controls">
+          <button class="anim-btn primary" id="animPlayBtn" onclick="playAnimation()">Play Animation</button>
+          <button class="anim-btn" onclick="resetAnimation()">Reset</button>
+        </div>
+        <div class="insight-box" id="insightBox">
+          <div class="big">You do not automatically need a 200-qubit problem register.</div>
+          Under exact block decomposition, the package-local logical size is 20. Total hardware needs still depend on the algorithm and any ancilla/syndrome overhead.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION D: Scaling Summary Table -->
+  <div class="section-d">
+    <div class="section-label">D &middot; Scaling Summary</div>
+    <div class="table-note">
+      The badges below are <strong>assumption-dependent teaching labels</strong>, not theorems. Read them as shorthand for the simple H1-era resource model used in the illustrative charts above.
+    </div>
+    <table class="summary-table" id="summaryTable">
+      <thead>
+        <tr>
+          <th>Size (n)</th>
+          <th>N x M</th>
+          <th>Sub-problems</th>
+          <th>Qubits / sub</th>
+          <th>QAOA Status*</th>
+          <th>DQI Status*</th>
+          <th>Classical Time</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-size="0">
+          <td><strong>n = 10</strong></td>
+          <td>5 x 2</td>
+          <td>2 sub-problems of N=5</td>
+          <td>5</td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td>&lt; 0.01s</td>
+          <td>Toy problem: both algorithms shine</td>
+        </tr>
+        <tr data-size="1">
+          <td><strong>n = 21</strong></td>
+          <td>7 x 3</td>
+          <td>3 sub-problems of N=7</td>
+          <td>7</td>
+          <td><span class="badge badge-yes">Yes</span></td>
+          <td><span class="badge badge-yes">Yes</span></td>
+          <td>&lt; 0.01s</td>
+          <td>Real constraints appear</td>
+        </tr>
+        <tr data-size="2">
+          <td><strong>n = 20</strong></td>
+          <td>10 x 2</td>
+          <td>2 sub-problems of N=10</td>
+          <td>10</td>
+          <td><span class="badge badge-yes">Yes</span></td>
+          <td><span class="badge badge-tight">Tight on qubits</span></td>
+          <td>&lt; 0.01s</td>
+          <td>More coverages, fewer packages</td>
+        </tr>
+        <tr data-size="3">
+          <td><strong>n = 50</strong></td>
+          <td>10 x 5</td>
+          <td>5 sub-problems of N=10</td>
+          <td>10</td>
+          <td><span class="badge badge-yes">Yes</span></td>
+          <td><span class="badge badge-challenge">Challenging</span></td>
+          <td>&lt; 0.01s</td>
+          <td>Mid-scale: real challenges emerge</td>
+        </tr>
+        <tr data-size="4">
+          <td><strong>n = 200</strong></td>
+          <td>20 x 10</td>
+          <td>10 sub-problems of N=20</td>
+          <td>20</td>
+          <td><span class="badge badge-tight">H1 limit</span></td>
+          <td><span class="badge badge-hard">Very challenging</span></td>
+          <td>&lt; 0.1s</td>
+          <td>Full problem: the ultimate benchmark</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+const INSTANCES = [
+  { n: 10, N: 5, M: 2, tagline: 'Toy problem: both algorithms shine' },
+  { n: 21, N: 7, M: 3, tagline: 'Small but real constraints appear' },
+  { n: 20, N: 10, M: 2, tagline: 'More coverages, fewer packages' },
+  { n: 50, N: 10, M: 5, tagline: 'Mid-scale: real challenges emerge' },
+  { n: 200, N: 20, M: 10, tagline: 'Full problem: the ultimate benchmark' },
+];
+
+let currentIdx = 0;
+
+// ============ SECTION A: Problem Size Explorer ============
+function renderExplorer(idx, animate = true) {
+  currentIdx = idx;
+  const inst = INSTANCES[idx];
+
+  // Update tabs
+  document.querySelectorAll('.size-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === idx);
+  });
+
+  // Update table highlighting
+  document.querySelectorAll('#summaryTable tbody tr').forEach((row, i) => {
+    row.classList.toggle('active-row', i === idx);
+  });
+
+  // Problem info
+  document.getElementById('problemInfo').innerHTML =
+    `<span class="formula">n = ${inst.n}</span> &nbsp;=&nbsp; ${inst.N} coverages &times; ${inst.M} packages`;
+  document.getElementById('problemTagline').textContent = inst.tagline;
+
+  // Coverages
+  const cGrid = document.getElementById('coveragesGrid');
+  cGrid.innerHTML = '';
+  for (let i = 0; i < inst.N; i++) {
+    const card = document.createElement('div');
+    card.className = 'coverage-card' + (i < Math.min(3, inst.N) ? ' mandatory' : '');
+    if (animate) {
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0)';
+      setTimeout(() => {
+        card.style.transition = 'all 0.3s ease';
+        card.style.opacity = i < Math.min(3, inst.N) ? '1' : '0.7';
+        card.style.transform = 'scale(1)';
+      }, i * 30);
+    }
+    cGrid.appendChild(card);
+  }
+
+  // Packages
+  const pGrid = document.getElementById('packagesGrid');
+  pGrid.innerHTML = '';
+  for (let i = 0; i < inst.M; i++) {
+    const box = document.createElement('div');
+    box.className = 'package-box';
+    box.textContent = 'P' + (i + 1);
+    if (animate) {
+      box.style.opacity = '0';
+      box.style.transform = 'scale(0)';
+      setTimeout(() => {
+        box.style.transition = 'all 0.3s ease';
+        box.style.opacity = '0.8';
+        box.style.transform = 'scale(1)';
+      }, i * 50 + 100);
+    }
+    pGrid.appendChild(box);
+  }
+
+  // QUBO matrix
+  renderQuboMatrix(inst, animate);
+}
+
+function renderQuboMatrix(inst, animate) {
+  const container = document.getElementById('quboMatrix');
+  container.innerHTML = '';
+
+  const totalSize = 200; // container px
+  const matrixN = inst.n;
+  const blockSize = inst.N;
+  const numBlocks = inst.M;
+  const scale = totalSize / matrixN;
+
+  // Background grid
+  const bg = document.createElement('div');
+  bg.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,transparent,transparent ${scale - 0.5}px,rgba(0,0,0,0.03) ${scale - 0.5}px,rgba(0,0,0,0.03) ${scale}px),repeating-linear-gradient(90deg,transparent,transparent ${scale - 0.5}px,rgba(0,0,0,0.03) ${scale - 0.5}px,rgba(0,0,0,0.03) ${scale}px);`;
+  container.appendChild(bg);
+
+  for (let b = 0; b < numBlocks; b++) {
+    const block = document.createElement('div');
+    block.className = 'qubo-block';
+    const offset = b * blockSize * scale;
+    const size = blockSize * scale;
+
+    if (animate) {
+      block.style.cssText = `left:${offset}px;top:${offset}px;width:0px;height:0px;opacity:0;`;
+      setTimeout(() => {
+        block.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        block.style.width = size + 'px';
+        block.style.height = size + 'px';
+        block.style.opacity = '1';
+      }, b * 80 + 200);
+    } else {
+      block.style.cssText = `left:${offset}px;top:${offset}px;width:${size}px;height:${size}px;`;
+    }
+
+    const inner = document.createElement('div');
+    inner.className = 'qubo-block-inner';
+    block.appendChild(inner);
+    container.appendChild(block);
+  }
+
+  document.getElementById('quboDims').textContent =
+    `${matrixN} x ${matrixN} QUBO = ${numBlocks} blocks of ${blockSize} x ${blockSize}`;
+}
+
+// Tab clicks
+document.getElementById('sizeTabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.size-tab');
+  if (!tab) return;
+  renderExplorer(parseInt(tab.dataset.idx));
+});
+
+// ============ SECTION B: Charts ============
+const xLabels = ['n=10', 'n=21', 'n=20', 'n=50', 'n=200'];
+const Ns = [5, 7, 10, 10, 20];
+const Ms = [2, 3, 2, 5, 10];
+
+const chartOpts = (yLabel, suggestedMax) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 800, easing: 'easeInOutQuart' },
+  scales: {
+    x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+    y: {
+      beginAtZero: true,
+      suggestedMax: suggestedMax,
+      title: { display: true, text: yLabel, font: { size: 11 } },
+      grid: { color: 'rgba(0,0,0,0.06)' },
+      ticks: { font: { size: 10 } }
+    }
+  },
+  plugins: {
+    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 8 } },
+    tooltip: { backgroundColor: 'rgba(45,41,38,0.9)', titleFont: { size: 11 }, bodyFont: { size: 11 } }
+  },
+  elements: { point: { radius: 4, hoverRadius: 6 }, line: { tension: 0.3 } }
+});
+
+// 1. Qubits Required (per sub-problem)
+new Chart(document.getElementById('chartQubits'), {
+  type: 'line',
+  data: {
+    labels: xLabels,
+    datasets: [
+      {
+        label: 'QAOA problem register',
+        data: Ns.map(N => N),
+        borderColor: '#0066CC',
+        backgroundColor: 'rgba(0,102,204,0.1)',
+        fill: false,
+        borderWidth: 2
+      },
+      {
+        label: 'DQI total (problem + ancillas, illustrative)',
+        data: Ns.map(N => Math.round(N * 1.5 + 3)),
+        borderColor: '#00356B',
+        backgroundColor: 'rgba(0,53,107,0.1)',
+        fill: false,
+        borderWidth: 2,
+        borderDash: [5, 3]
+      },
+      {
+        label: 'H1 qubit budget (20)',
+        data: [20, 20, 20, 20, 20],
+        borderColor: 'rgba(227,24,55,0.4)',
+        borderWidth: 1,
+        borderDash: [8, 4],
+        pointRadius: 0,
+        fill: false
+      }
+    ]
+  },
+  options: chartOpts('Qubits', 40)
+});
+
+// 2. Two-Qubit Gate Count
+new Chart(document.getElementById('chartGates'), {
+  type: 'line',
+  data: {
+    labels: xLabels,
+    datasets: [
+      {
+        label: 'QAOA (p=1)',
+        data: Ns.map(N => Math.round(N * N * 0.5 + N * 2)),
+        borderColor: '#0066CC',
+        fill: false,
+        borderWidth: 2
+      },
+      {
+        label: 'QAOA (p=2)',
+        data: Ns.map(N => Math.round((N * N * 0.5 + N * 2) * 2)),
+        borderColor: '#0066CC',
+        fill: false,
+        borderWidth: 2,
+        borderDash: [5, 3]
+      },
+      {
+        label: 'DQI',
+        data: Ns.map(N => Math.round(N * N * 0.8 + N * 4 + 10)),
+        borderColor: '#00356B',
+        fill: false,
+        borderWidth: 2
+      }
+    ]
+  },
+  options: chartOpts('Gate Count', 500)
+});
+
+// 3. Circuit Depth
+new Chart(document.getElementById('chartDepth'), {
+  type: 'line',
+  data: {
+    labels: xLabels,
+    datasets: [
+      {
+        label: 'QAOA (p=1)',
+        data: Ns.map(N => Math.round(N * 3 + 5)),
+        borderColor: '#0066CC',
+        fill: false,
+        borderWidth: 2
+      },
+      {
+        label: 'QAOA (p=2)',
+        data: Ns.map(N => Math.round((N * 3 + 5) * 2)),
+        borderColor: '#0066CC',
+        fill: false,
+        borderWidth: 2,
+        borderDash: [5, 3]
+      },
+      {
+        label: 'DQI',
+        data: Ns.map(N => Math.round(N * 5 + 15)),
+        borderColor: '#00356B',
+        fill: false,
+        borderWidth: 2
+      }
+    ]
+  },
+  options: chartOpts('Depth', 140)
+});
+
+// 4. Classical Solve Time
+new Chart(document.getElementById('chartClassical'), {
+  type: 'bar',
+  data: {
+    labels: xLabels,
+    datasets: [
+      {
+        label: 'PuLP/CBC',
+        data: [0.002, 0.003, 0.004, 0.008, 0.06],
+        backgroundColor: 'rgba(45,140,60,0.6)',
+        borderColor: '#2D8C3C',
+        borderWidth: 1,
+        borderRadius: 4
+      }
+    ]
+  },
+  options: {
+    ...chartOpts('Seconds', 0.1),
+    plugins: {
+      ...chartOpts('Seconds', 0.1).plugins,
+      subtitle: {
+        display: true,
+        text: 'For these toy instances, the classical baseline stays fast. The harder question is how the quantum workflows spend resources.',
+        font: { size: 10, style: 'italic' },
+        color: '#999',
+        padding: { bottom: 4 }
+      }
+    }
+  }
+});
+
+// ============ SECTION C: Block Diagonal Animation ============
+let animStep = -1;
+let animTimer = null;
+const TOTAL_BLOCKS = 10;
+const BLOCK_N = 20;
+const MATRIX_PX = 180;
+
+function initAnimBlocks() {
+  const container = document.getElementById('animMatrix');
+  // Remove old blocks
+  container.querySelectorAll('.anim-block').forEach(b => b.remove());
+
+  const blockPx = MATRIX_PX / (TOTAL_BLOCKS * BLOCK_N) * BLOCK_N;
+
+  for (let i = 0; i < TOTAL_BLOCKS; i++) {
+    const block = document.createElement('div');
+    block.className = 'anim-block';
+    block.id = `ablock-${i}`;
+
+    const offset = i * blockPx;
+    block.style.cssText = `left:${offset}px;top:${offset}px;width:${blockPx}px;height:${blockPx}px;`;
+
+    const fill = document.createElement('div');
+    fill.className = 'anim-block-fill';
+    block.appendChild(fill);
+    container.appendChild(block);
+  }
+}
+
+function setAnimStep(step) {
+  animStep = step;
+  const blockPx = MATRIX_PX / TOTAL_BLOCKS;
+
+  // Update narration
+  document.querySelectorAll('.narration-step').forEach((el, i) => {
+    el.classList.remove('active', 'past');
+    if (i === step) el.classList.add('active');
+    else if (i < step) el.classList.add('past');
+  });
+
+  const bg = document.getElementById('animBg');
+
+  if (step === 0) {
+    // Full dense matrix look
+    bg.style.opacity = '1';
+    for (let i = 0; i < TOTAL_BLOCKS; i++) {
+      const b = document.getElementById(`ablock-${i}`);
+      const offset = i * blockPx;
+      b.style.left = offset + 'px';
+      b.style.top = offset + 'px';
+      b.style.width = blockPx + 'px';
+      b.style.height = blockPx + 'px';
+      b.style.opacity = '0.5';
+      b.style.borderRadius = '0px';
+      b.querySelector('.anim-block-fill').style.opacity = '0.4';
+    }
+  } else if (step === 1) {
+    // Highlight block structure
+    bg.style.opacity = '0.3';
+    for (let i = 0; i < TOTAL_BLOCKS; i++) {
+      const b = document.getElementById(`ablock-${i}`);
+      b.style.opacity = '1';
+      b.style.borderRadius = '2px';
+      b.querySelector('.anim-block-fill').style.opacity = '0.8';
+    }
+  } else if (step === 2) {
+    // Separate blocks apart
+    bg.style.opacity = '0';
+    const gapPx = 2;
+    const newBlockPx = (MATRIX_PX - (TOTAL_BLOCKS - 1) * gapPx) / TOTAL_BLOCKS;
+    const cols = 5;
+    for (let i = 0; i < TOTAL_BLOCKS; i++) {
+      const b = document.getElementById(`ablock-${i}`);
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = col * (newBlockPx + gapPx + 2);
+      const y = row * (newBlockPx + gapPx + 60);
+      b.style.left = x + 'px';
+      b.style.top = y + 'px';
+      b.style.width = (newBlockPx + 2) + 'px';
+      b.style.height = (newBlockPx + 2) + 'px';
+      b.style.borderRadius = '3px';
+    }
+  } else if (step === 3) {
+    // Shrink to single block representation
+    bg.style.opacity = '0';
+    for (let i = 0; i < TOTAL_BLOCKS; i++) {
+      const b = document.getElementById(`ablock-${i}`);
+      if (i === 0) {
+        b.style.left = '50px';
+        b.style.top = '40px';
+        b.style.width = '80px';
+        b.style.height = '80px';
+        b.style.borderRadius = '6px';
+        b.style.opacity = '1';
+      } else {
+        b.style.opacity = '0.15';
+        b.style.left = (50 + 5) + 'px';
+        b.style.top = (40 + 5) + 'px';
+        b.style.width = '80px';
+        b.style.height = '80px';
+      }
+    }
+  } else if (step === 4) {
+    // Final: show all blocks small with H1 label
+    bg.style.opacity = '0';
+    const cols = 5;
+    const newBlockPx = 30;
+    const gap = 6;
+    for (let i = 0; i < TOTAL_BLOCKS; i++) {
+      const b = document.getElementById(`ablock-${i}`);
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      b.style.left = (20 + col * (newBlockPx + gap)) + 'px';
+      b.style.top = (30 + row * (newBlockPx + gap + 40)) + 'px';
+      b.style.width = newBlockPx + 'px';
+      b.style.height = newBlockPx + 'px';
+      b.style.opacity = '1';
+      b.style.borderRadius = '4px';
+      b.querySelector('.anim-block-fill').style.background =
+        'linear-gradient(135deg, #2D8C3C, #5cbf6b)';
+    }
+    document.getElementById('insightBox').classList.add('visible');
+  }
+}
+
+function playAnimation() {
+  resetAnimation();
+  document.getElementById('animPlayBtn').textContent = 'Playing...';
+  document.getElementById('animPlayBtn').disabled = true;
+
+  let step = 0;
+  setAnimStep(0);
+
+  animTimer = setInterval(() => {
+    step++;
+    if (step >= 5) {
+      clearInterval(animTimer);
+      animTimer = null;
+      document.getElementById('animPlayBtn').textContent = 'Play Again';
+      document.getElementById('animPlayBtn').disabled = false;
+      return;
+    }
+    setAnimStep(step);
+  }, 2000);
+}
+
+function resetAnimation() {
+  if (animTimer) { clearInterval(animTimer); animTimer = null; }
+  document.getElementById('insightBox').classList.remove('visible');
+  document.getElementById('animPlayBtn').textContent = 'Play Animation';
+  document.getElementById('animPlayBtn').disabled = false;
+  initAnimBlocks();
+  animStep = -1;
+  // Reset narration
+  document.querySelectorAll('.narration-step').forEach((el, i) => {
+    el.classList.remove('active', 'past');
+    if (i === 0) el.classList.add('active');
+  });
+}
+
+// ============ INIT ============
+renderExplorer(0, false);
+initAnimBlocks();
+setAnimStep(0);
+</script>
+</body>
+</html>

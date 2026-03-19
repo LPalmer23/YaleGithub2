@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P&C Insurance Product Bundling Optimization | |Y>Quantum 2026</title>
+<style>
+  :root {
+    --accent-red: #E31837;
+    --accent-red-light: #f4a0ad;
+    --accent-red-bg: #fdf0f2;
+    --charcoal: #2D2926;
+    --light-gray: #F5F5F5;
+    --platform-blue: #0066CC;
+    --yale-blue: #00356B;
+    --white: #FFFFFF;
+    --border: #ddd;
+    --shadow: rgba(0,0,0,0.08);
+    --family-mandatory: #E31837;
+    --family-optional-1: #3a7bd5;
+    --family-optional-2: #00a676;
+    --family-optional-3: #e6a817;
+    --family-optional-4: #9b59b6;
+    --family-optional-5: #e67e22;
+    --family-optional-6: #1abc9c;
+    --family-optional-7: #c0392b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--light-gray);
+    background-image:
+      linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--charcoal);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ---- HEADER ---- */
+  .header {
+    background: linear-gradient(135deg, var(--charcoal) 0%, var(--yale-blue) 100%);
+    color: var(--white);
+    padding: 28px 40px 22px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-red), var(--platform-blue), var(--yale-blue));
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    opacity: 0.85;
+    font-weight: 400;
+  }
+  .header .subtitle span { font-weight: 600; }
+
+  /* ---- GOAL BANNER ---- */
+  .goal-banner {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 40px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .goal-banner .goal { font-weight: 700; color: var(--accent-red); }
+  .goal-banner .catch { font-weight: 600; color: var(--yale-blue); }
+
+  /* ---- MAIN LAYOUT ---- */
+  .main-container {
+    display: flex;
+    gap: 0;
+    padding: 20px 20px 10px;
+    max-width: 1920px;
+    margin: 0 auto;
+    min-height: 520px;
+    position: relative;
+  }
+
+  /* ---- COLUMNS ---- */
+  .col-coverages {
+    flex: 0 0 380px;
+    min-width: 320px;
+  }
+  .col-center {
+    flex: 1 1 auto;
+    position: relative;
+    min-width: 120px;
+  }
+  .col-packages {
+    flex: 0 0 310px;
+    min-width: 260px;
+  }
+
+  .col-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .col-title .count {
+    background: var(--charcoal);
+    color: var(--white);
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ---- COVERAGE CARDS ---- */
+  .family-group {
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .family-group.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .family-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 3px;
+    color: var(--white);
+  }
+  .family-label .badge {
+    font-size: 9px;
+    background: rgba(255,255,255,0.3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  .coverage-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin-bottom: 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .coverage-card:hover {
+    box-shadow: 0 2px 8px var(--shadow);
+    transform: translateX(4px);
+    z-index: 2;
+  }
+  .coverage-card.highlighted {
+    box-shadow: 0 0 0 2px var(--platform-blue), 0 2px 8px rgba(0,102,204,0.2);
+    transform: translateX(4px);
+  }
+  .coverage-card .name {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+  }
+  .coverage-card .price {
+    font-weight: 700;
+    font-size: 12px;
+    white-space: nowrap;
+    margin-left: 8px;
+  }
+
+  /* Tooltip on hover */
+  .coverage-card .tooltip {
+    display: none;
+    position: absolute;
+    left: 105%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--charcoal);
+    color: var(--white);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .coverage-card .tooltip::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: var(--charcoal);
+  }
+  .coverage-card:hover .tooltip { display: block; }
+
+  /* ---- PACKAGE CARDS ---- */
+  .package-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    opacity: 0;
+    transform: translateX(30px);
+    position: relative;
+  }
+  .package-card.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .package-card:hover, .package-card.active {
+    box-shadow: 0 4px 16px var(--shadow);
+    border-color: var(--platform-blue);
+  }
+  .package-card.active {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 0 2px var(--accent-red), 0 4px 16px rgba(227,24,55,0.15);
+  }
+  .package-card .pkg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+  }
+  .package-card .pkg-name {
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .package-card .pkg-discount {
+    background: var(--accent-red);
+    color: var(--white);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .package-card .pkg-detail {
+    font-size: 11px;
+    color: #777;
+    margin-top: 2px;
+  }
+
+  /* Expanded package detail */
+  .package-card .pkg-expanded {
+    display: none;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  .package-card.active .pkg-expanded { display: block; }
+  .pkg-expanded table { width: 100%; border-collapse: collapse; }
+  .pkg-expanded th {
+    text-align: left;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #999;
+  }
+  .pkg-expanded td {
+    padding: 2px 4px;
+    font-size: 11px;
+  }
+  .pkg-expanded .profit-positive { color: #16a34a; font-weight: 600; }
+  .pkg-expanded .total-row {
+    border-top: 2px solid var(--charcoal);
+    font-weight: 700;
+  }
+
+  /* ---- SVG LINES ---- */
+  .lines-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .conn-line {
+    stroke: var(--border);
+    stroke-width: 1.5;
+    fill: none;
+    opacity: 0;
+    transition: opacity 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease;
+  }
+  .conn-line.visible { opacity: 0.25; }
+  .conn-line.highlighted {
+    stroke: var(--accent-red);
+    stroke-width: 2.5;
+    opacity: 0.7;
+  }
+
+  /* ---- CONSTRAINTS SECTION ---- */
+  .constraints-bar {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 12px 20px;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .constraint-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--light-gray);
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+    cursor: default;
+  }
+  .constraint-badge:hover { transform: translateY(-2px); }
+  .constraint-badge .icon {
+    font-size: 16px;
+    line-height: 1;
+  }
+  .constraint-badge.mandatory { border-color: var(--accent-red); color: var(--accent-red); }
+  .constraint-badge.optional { border-color: var(--platform-blue); color: var(--platform-blue); }
+  .constraint-badge.limit { border-color: var(--yale-blue); color: var(--yale-blue); }
+  .constraint-badge.dependency { border-color: var(--family-optional-2); color: var(--family-optional-2); }
+  .constraint-badge.incompatible { border-color: var(--family-optional-7); color: var(--family-optional-7); }
+
+  /* ---- TRADEOFF SECTION ---- */
+  .tradeoff-section {
+    padding: 20px 40px 28px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .tradeoff-title {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 14px;
+    color: var(--charcoal);
+  }
+
+  .tradeoff-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .slider-panel {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .slider-panel h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .slider-row label {
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 80px;
+  }
+  .slider-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent-red);
+    height: 6px;
+    cursor: pointer;
+  }
+  .slider-row .val {
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 50px;
+    text-align: right;
+    color: var(--accent-red);
+  }
+
+  .metrics-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .metric-box {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    border-radius: 8px;
+    background: var(--light-gray);
+    border: 1px solid var(--border);
+  }
+  .metric-box .metric-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #999;
+    letter-spacing: 0.5px;
+  }
+  .metric-box .metric-value {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .metric-box .metric-value.positive { color: #16a34a; }
+  .metric-box .metric-value.negative { color: var(--accent-red); }
+
+  .formula-panel {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .formula-panel h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .formula {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 2;
+    background: var(--light-gray);
+    padding: 14px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .formula .hl-red { color: var(--accent-red); font-weight: 700; }
+  .formula .hl-blue { color: var(--platform-blue); font-weight: 700; }
+  .formula .hl-yale { color: var(--yale-blue); font-weight: 700; }
+
+  .tradeoff-insight {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 16px;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, rgba(227,24,55,0.06), rgba(0,102,204,0.06));
+    border-radius: 8px;
+    font-weight: 500;
+  }
+
+  /* ---- BAR CHART ---- */
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 80px;
+    margin-top: 12px;
+    padding: 0 4px;
+  }
+  .bar-chart .bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    transition: height 0.3s ease, background 0.3s ease;
+    position: relative;
+    min-width: 0;
+  }
+  .bar-chart .bar .bar-label {
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px;
+    white-space: nowrap;
+    color: #999;
+  }
+
+  /* ---- FOOTER ---- */
+  .footer {
+    text-align: center;
+    padding: 12px 20px;
+    font-size: 11px;
+    color: #999;
+    border-top: 1px solid var(--border);
+    background: var(--white);
+  }
+  .footer a { color: var(--platform-blue); text-decoration: none; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 1200px) {
+    .main-container { flex-wrap: wrap; }
+    .col-coverages { flex: 1 1 100%; }
+    .col-center { display: none; }
+    .col-packages { flex: 1 1 100%; }
+    .tradeoff-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .header h1 { font-size: 20px; }
+    .col-coverages, .col-packages { min-width: 0; flex-basis: 100%; }
+    .tradeoff-section { padding: 16px 16px 24px; }
+    .constraints-bar { gap: 8px; padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>P&C Insurance Product Bundling Optimization</h1>
+  <div class="subtitle"><span>|Y&gt;Quantum 2026</span> Hackathon Challenge &mdash; Sponsor Challenge Materials</div>
+</div>
+
+<!-- GOAL BANNER -->
+<div class="goal-banner">
+  <span class="goal">The Goal:</span> Choose which coverages go into which packages to maximize total expected profit. &nbsp;&nbsp;
+  <span class="catch">The Catch:</span> More discount = more customers, but less revenue per customer.
+</div>
+
+<!-- OPTIMIZATION LENS -->
+<div class="tradeoff-section" style="padding-top:18px; padding-bottom:12px;">
+  <div class="tradeoff-title">Optimization Lens: What Is the Solver Choosing?</div>
+  <div class="tradeoff-grid">
+    <div class="slider-panel">
+      <h3>Read the Decision Variables</h3>
+      <div style="font-size:13px; line-height:1.8; color:#555;">
+        <div><span class="formula" style="padding: 2px 6px; font-size: 11px;">x<sub>i,m</sub> = 1</span> means coverage <strong>i</strong> is included in package <strong>m</strong>.</div>
+        <div style="margin-top:6px;"><span class="formula" style="padding: 2px 6px; font-size: 11px;">x<sub>i,m</sub> = 0</span> means that coverage is left out of that package.</div>
+        <div style="margin-top:10px;">The optimization goal is to maximize <strong>total expected contribution</strong> across all coverage-package assignments.</div>
+        <div style="margin-top:10px;">A solution is <strong>feasible</strong> only if it obeys all family, dependency, incompatibility, and capacity rules.</div>
+      </div>
+    </div>
+    <div class="formula-panel">
+      <h3>Feasible vs. Infeasible Bundles</h3>
+      <div style="font-size:13px; line-height:1.8; color:#555;">
+        <div><strong style="color:#16a34a;">Feasible:</strong> enhanced auto liability + homeowners + collision + personal umbrella. This respects mandatory-family, dependency, and at-most-one rules.</div>
+        <div style="margin-top:8px;"><strong style="color:var(--accent-red);">Infeasible:</strong> renters + flood insurance. Flood requires homeowners, so this bundle breaks a dependency rule.</div>
+        <div style="margin-top:8px;"><strong style="color:var(--accent-red);">Also infeasible:</strong> gap insurance + personal property floater. That pair is explicitly incompatible.</div>
+        <div style="margin-top:10px; font-weight:600; color:var(--charcoal);">The package cards on the right are candidate bundles to inspect, not certified optimal answers.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN 3-COLUMN LAYOUT -->
+<div class="main-container" id="mainContainer">
+  <!-- LEFT: COVERAGES -->
+  <div class="col-coverages" id="colCoverages">
+    <div class="col-title">Coverages <span class="count">20</span></div>
+    <div id="coverageList"></div>
+  </div>
+
+  <!-- CENTER: SVG LINES -->
+  <div class="col-center" id="colCenter">
+    <svg class="lines-svg" id="linesSvg"></svg>
+  </div>
+
+  <!-- RIGHT: PACKAGES -->
+  <div class="col-packages" id="colPackages">
+    <div class="col-title">Packages <span class="count">10</span></div>
+    <div id="packageList"></div>
+  </div>
+</div>
+
+<!-- CONSTRAINTS BAR -->
+<div class="constraints-bar" id="constraintsBar">
+  <div class="constraint-badge mandatory">
+    <span class="icon">&#x1F512;</span> Exactly 1 from mandatory families
+  </div>
+  <div class="constraint-badge optional">
+    <span class="icon">&#x1F3A9;</span> At most 1 from optional families
+  </div>
+  <div class="constraint-badge limit">
+    <span class="icon">&#x1F522;</span> Max 7 coverages per package
+  </div>
+  <div class="constraint-badge dependency">
+    <span class="icon">&#x2192;</span> Dependencies (e.g. homeowners &#x2192; flood)
+  </div>
+  <div class="constraint-badge incompatible">
+    <span class="icon">&#x2717;</span> Incompatible pairs (e.g. gap &#x2717; property floater)
+  </div>
+</div>
+
+<!-- TRADEOFF SECTION -->
+<div class="tradeoff-section">
+  <div class="tradeoff-title">The Tradeoff: Discount vs. Profit</div>
+  <div class="tradeoff-grid">
+    <!-- SLIDER PANEL -->
+    <div class="slider-panel">
+      <h3>Interactive Discount Explorer</h3>
+      <div class="slider-row">
+        <label>Discount</label>
+        <input type="range" id="discountSlider" min="0" max="40" value="15" step="1">
+        <span class="val" id="discountVal">15%</span>
+      </div>
+      <div class="slider-row">
+        <label>Price</label>
+        <span style="flex:1; font-size: 13px;" id="priceLabel">$720 (auto_liability_basic)</span>
+        <span class="val" id="marginLabel">22%</span>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-box">
+          <div class="metric-label">Revenue / Unit</div>
+          <div class="metric-value negative" id="metricRevenue">$134.64</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Demand Factor</div>
+          <div class="metric-value" id="metricTakeRate">1.04x</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Expected Profit</div>
+          <div class="metric-value positive" id="metricProfit">$139.81</div>
+        </div>
+      </div>
+      <!-- Mini bar chart for all 10 discount levels -->
+      <div style="margin-top: 16px;">
+        <div style="font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Profit by Discount Level</div>
+        <div class="bar-chart" id="barChart"></div>
+      </div>
+    </div>
+
+    <!-- FORMULA PANEL -->
+    <div class="formula-panel">
+      <h3>Profit Contribution Formula</h3>
+      <div class="formula">
+        c<sub>i,m</sub> = <span class="hl-red">price</span>
+        &times; <span class="hl-red">margin</span>
+        &times; (1 - <span class="hl-blue">discount</span>)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&times; (<span class="hl-yale">take_rate</span>
+        &times; <span class="hl-yale">affinity</span>
+        &times; (1 + <span class="hl-blue">1.2</span> &times; <span class="hl-blue">discount</span>))
+      </div>
+      <div style="margin-top: 14px; font-size: 12px; line-height: 1.7; color: #555;">
+        <div><strong>1.</strong> <span class="formula" style="padding: 2px 6px; font-size: 11px;"><span class="hl-red">price &times; margin &times; (1-discount)</span></span> = unit margin after the package discount</div>
+        <div style="margin-top: 4px;"><strong>2.</strong> <span class="formula" style="padding: 2px 6px; font-size: 11px;"><span class="hl-yale">take_rate &times; affinity &times; (1+1.2&times;discount)</span></span> = stimulated take-rate factor</div>
+        <div style="margin-top: 4px;"><strong>3.</strong> <span class="formula" style="padding: 2px 6px; font-size: 11px;">expected contribution = (unit margin) &times; (stimulated take-rate factor)</span></div>
+        <div style="margin-top: 8px; font-weight: 600; color: var(--charcoal);">
+          The discount simultaneously <em>decreases</em> revenue per unit and <em>increases</em> the demand factor &mdash; creating a non-trivial optimization landscape.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tradeoff-insight" id="tradeoffInsight">
+    At <strong>15%</strong> discount, expected profit per unit is <strong>$139.81</strong>. This slider shows the local tradeoff for one coverage in one package; the full optimizer must balance all coverages and all constraints at once.
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  |Y&gt;Quantum 2026 &mdash; Sponsor Challenge Materials &nbsp;|&nbsp;
+  <a href="https://arxiv.org/abs/2509.08328" target="_blank">arXiv:2509.08328</a> &nbsp;|&nbsp;
+  N=20 coverages, M=10 packages, n=200 binary decision variables
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const FAMILIES = [
+  { id: 'auto_base',       label: 'Auto Base',            mandatory: true,  color: '#E31837' },
+  { id: 'property_base',   label: 'Property Base',        mandatory: true,  color: '#C21230' },
+  { id: 'auto_physical',   label: 'Auto Physical',        mandatory: false, color: '#3a7bd5' },
+  { id: 'auto_medical',    label: 'Auto Medical',         mandatory: false, color: '#00a676' },
+  { id: 'motorist_protect',label: 'Motorist Protection',  mandatory: false, color: '#e6a817' },
+  { id: 'auto_ancillary',  label: 'Auto Ancillary',       mandatory: false, color: '#9b59b6' },
+  { id: 'property_addon',  label: 'Property Add-on',      mandatory: false, color: '#e67e22' },
+  { id: 'liability_extend',label: 'Liability Extension',  mandatory: false, color: '#1abc9c' },
+  { id: 'specialty_peril', label: 'Specialty Peril',       mandatory: false, color: '#c0392b' },
+];
+
+const COVERAGES = [
+  { id: 'auto_liability_basic',      name: 'Auto Liability Basic',      price: 720,  margin: 0.22, takeRate: 0.88, family: 'auto_base' },
+  { id: 'auto_liability_enhanced',   name: 'Auto Liability Enhanced',   price: 1180, margin: 0.28, takeRate: 0.45, family: 'auto_base' },
+  { id: 'homeowners',                name: 'Homeowners',                price: 1450, margin: 0.25, takeRate: 0.65, family: 'property_base' },
+  { id: 'condo_owners',              name: 'Condo Owners',              price: 580,  margin: 0.27, takeRate: 0.35, family: 'property_base' },
+  { id: 'renters',                   name: 'Renters',                   price: 220,  margin: 0.32, takeRate: 0.30, family: 'property_base' },
+  { id: 'collision',                 name: 'Collision',                 price: 480,  margin: 0.24, takeRate: 0.62, family: 'auto_physical' },
+  { id: 'comprehensive',             name: 'Comprehensive',             price: 320,  margin: 0.26, takeRate: 0.58, family: 'auto_physical' },
+  { id: 'medical_payments',          name: 'Medical Payments',          price: 95,   margin: 0.35, takeRate: 0.38, family: 'auto_medical' },
+  { id: 'personal_injury_protection',name: 'Personal Injury Protection',price: 210,  margin: 0.20, takeRate: 0.42, family: 'auto_medical' },
+  { id: 'uninsured_motorist',        name: 'Uninsured Motorist',        price: 175,  margin: 0.30, takeRate: 0.48, family: 'motorist_protect' },
+  { id: 'underinsured_motorist',     name: 'Underinsured Motorist',     price: 140,  margin: 0.30, takeRate: 0.40, family: 'motorist_protect' },
+  { id: 'roadside_assistance',       name: 'Roadside Assistance',       price: 75,   margin: 0.42, takeRate: 0.35, family: 'auto_ancillary' },
+  { id: 'rental_reimbursement',      name: 'Rental Reimbursement',      price: 55,   margin: 0.40, takeRate: 0.28, family: 'auto_ancillary' },
+  { id: 'gap_insurance',             name: 'GAP Insurance',             price: 310,  margin: 0.38, takeRate: 0.18, family: 'auto_ancillary' },
+  { id: 'personal_property_floater', name: 'Personal Property Floater', price: 195,  margin: 0.33, takeRate: 0.22, family: 'property_addon' },
+  { id: 'additional_living_expense', name: 'Additional Living Expense', price: 110,  margin: 0.35, takeRate: 0.25, family: 'property_addon' },
+  { id: 'personal_umbrella',         name: 'Personal Umbrella',         price: 380,  margin: 0.30, takeRate: 0.20, family: 'liability_extend' },
+  { id: 'excess_liability',          name: 'Excess Liability',          price: 470,  margin: 0.28, takeRate: 0.12, family: 'liability_extend' },
+  { id: 'flood_insurance',           name: 'Flood Insurance',           price: 950,  margin: 0.18, takeRate: 0.14, family: 'specialty_peril' },
+  { id: 'earthquake_insurance',      name: 'Earthquake Insurance',      price: 1350, margin: 0.16, takeRate: 0.08, family: 'specialty_peril' },
+];
+
+const PACKAGES = [
+  { id: 'pkg0',  name: 'Young Driver Budget',      discount: 0.22, coverages: [0, 2, 5, 8, 9, 13, 18] },
+  { id: 'pkg1',  name: 'Young Family Starter',     discount: 0.18, coverages: [0, 2, 5, 8, 9, 13, 18] },
+  { id: 'pkg2',  name: 'Suburban Homeowner',       discount: 0.15, coverages: [1, 2, 5, 9, 13, 16, 18] },
+  { id: 'pkg3',  name: 'Urban Condo Owner',        discount: 0.17, coverages: [1, 2, 5, 9, 13, 16, 18] },
+  { id: 'pkg4',  name: 'Premium Full Coverage',    discount: 0.10, coverages: [1, 2, 5, 8, 9, 16, 18] },
+  { id: 'pkg5',  name: 'Senior Value',             discount: 0.20, coverages: [1, 2, 5, 8, 9, 16, 18] },
+  { id: 'pkg6',  name: 'High-Risk Area',           discount: 0.12, coverages: [1, 2, 5, 9, 13, 16, 18] },
+  { id: 'pkg7',  name: 'Basic Compliance',         discount: 0.25, coverages: [0, 2, 5, 8, 9, 13, 18] },
+  { id: 'pkg8',  name: 'Auto-Focused',             discount: 0.16, coverages: [1, 2, 5, 8, 9, 13, 18] },
+  { id: 'pkg9',  name: 'Property-Focused',         discount: 0.14, coverages: [1, 2, 5, 9, 13, 16, 18] },
+];
+
+// Canonical segment-affinity table from YQH26_data/instance_segment_affinity.csv
+const AFFINITIES = [
+  [1.25, 0.70, 0.70, 0.80, 1.30, 1.10, 0.90, 0.85, 0.80, 1.15, 1.10, 1.25, 1.10, 1.30, 0.75, 0.70, 0.70, 0.70, 0.75, 0.70],
+  [1.10, 0.90, 0.95, 0.85, 1.15, 1.05, 1.00, 1.20, 1.15, 1.05, 1.00, 1.10, 1.00, 0.95, 0.90, 0.90, 0.85, 0.80, 0.85, 0.80],
+  [0.85, 1.20, 1.30, 0.70, 0.70, 1.00, 1.10, 1.00, 0.95, 1.00, 1.00, 0.90, 0.85, 0.80, 1.15, 1.20, 1.25, 1.15, 1.05, 0.90],
+  [0.80, 1.25, 0.70, 1.30, 0.95, 1.05, 1.15, 0.90, 0.95, 1.10, 1.05, 1.00, 1.05, 0.85, 1.20, 0.80, 1.10, 1.10, 0.80, 0.80],
+  [0.70, 1.30, 1.20, 1.10, 0.80, 1.25, 1.25, 1.15, 1.10, 1.10, 1.10, 1.05, 1.10, 0.90, 1.20, 1.15, 1.30, 1.30, 1.10, 1.05],
+  [1.00, 1.05, 1.15, 0.90, 0.85, 0.85, 0.95, 1.30, 1.25, 1.00, 1.00, 0.80, 0.75, 0.70, 1.00, 1.10, 1.05, 0.95, 0.90, 0.85],
+  [0.95, 1.00, 1.25, 0.75, 0.70, 0.90, 1.20, 0.95, 0.90, 0.95, 0.90, 0.85, 0.80, 0.75, 0.95, 1.20, 0.90, 0.85, 1.30, 1.30],
+  [1.30, 0.70, 0.85, 0.80, 1.20, 0.75, 0.75, 0.80, 0.80, 0.85, 0.85, 0.75, 0.75, 0.70, 0.75, 0.75, 0.70, 0.70, 0.75, 0.70],
+  [1.15, 1.20, 0.75, 0.75, 0.80, 1.30, 1.25, 1.10, 1.05, 1.20, 1.15, 1.20, 1.15, 1.10, 0.75, 0.75, 0.80, 0.80, 0.80, 0.75],
+  [0.80, 0.85, 1.30, 1.10, 0.75, 0.80, 0.85, 0.85, 0.85, 0.80, 0.80, 0.80, 0.80, 0.75, 1.25, 1.20, 1.10, 1.05, 1.25, 1.20],
+];
+
+// ============================================================
+// RENDER COVERAGES
+// ============================================================
+function renderCoverages() {
+  const container = document.getElementById('coverageList');
+  let html = '';
+  const familyMap = {};
+  FAMILIES.forEach(f => { familyMap[f.id] = f; });
+
+  let currentFamily = '';
+  COVERAGES.forEach((cov, idx) => {
+    if (cov.family !== currentFamily) {
+      currentFamily = cov.family;
+      const fam = familyMap[currentFamily];
+      html += `<div class="family-group" data-family="${fam.id}">`;
+      html += `<div class="family-label" style="background:${fam.color}">
+        ${fam.label}
+        <span class="badge">${fam.mandatory ? 'MANDATORY' : 'OPTIONAL'}</span>
+      </div>`;
+    }
+    html += `<div class="coverage-card" data-idx="${idx}" style="border-left-color:${familyMap[cov.family].color}">
+      <span class="name">${cov.name}</span>
+      <span class="price" style="color:${familyMap[cov.family].color}">$${cov.price}</span>
+      <div class="tooltip">
+        <strong>${cov.name}</strong><br>
+        Price: $${cov.price} &nbsp; Margin: ${(cov.margin*100).toFixed(0)}% &nbsp; Take Rate: ${(cov.takeRate*100).toFixed(0)}%<br>
+        Family: ${familyMap[cov.family].label} (${familyMap[cov.family].mandatory ? 'mandatory' : 'optional'})
+      </div>
+    </div>`;
+    // Close group if next is different family or last
+    const nextFam = COVERAGES[idx + 1]?.family;
+    if (nextFam !== currentFamily) {
+      html += `</div>`;
+    }
+  });
+  container.innerHTML = html;
+}
+
+// ============================================================
+// RENDER PACKAGES
+// ============================================================
+function computeProfit(covIdx, pkgIdx) {
+  const cov = COVERAGES[covIdx];
+  const pkg = PACKAGES[pkgIdx];
+  const affinity = AFFINITIES[pkgIdx][covIdx];
+  const d = pkg.discount;
+  const revenue = cov.price * cov.margin * (1 - d);
+  const demand = cov.takeRate * affinity * (1 + 1.2 * d);
+  return revenue * demand;
+}
+
+function renderPackages() {
+  const container = document.getElementById('packageList');
+  let html = '';
+  PACKAGES.forEach((pkg, pIdx) => {
+    let totalProfit = 0;
+    let tableRows = '';
+    pkg.coverages.forEach(cIdx => {
+      const cov = COVERAGES[cIdx];
+      const profit = computeProfit(cIdx, pIdx);
+      totalProfit += profit;
+      tableRows += `<tr>
+        <td>${cov.name}</td>
+        <td>$${cov.price}</td>
+        <td>${(AFFINITIES[pIdx][cIdx]).toFixed(2)}</td>
+        <td class="profit-positive">$${profit.toFixed(2)}</td>
+      </tr>`;
+    });
+    html += `<div class="package-card" data-pkg="${pIdx}">
+      <div class="pkg-header">
+        <span class="pkg-name">${pkg.name}</span>
+        <span class="pkg-discount">${(pkg.discount*100).toFixed(0)}% off</span>
+      </div>
+      <div class="pkg-detail">${pkg.coverages.length} coverages &middot; Expected profit: $${totalProfit.toFixed(2)}</div>
+      <div class="pkg-expanded">
+        <table>
+          <tr><th>Coverage</th><th>Price</th><th>Affinity</th><th>c<sub>i,m</sub></th></tr>
+          ${tableRows}
+          <tr class="total-row"><td colspan="3">Total Expected Profit</td><td class="profit-positive">$${totalProfit.toFixed(2)}</td></tr>
+        </table>
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ============================================================
+// SVG CONNECTION LINES
+// ============================================================
+let drawnLines = [];
+
+function getElementCenter(el, container) {
+  const elRect = el.getBoundingClientRect();
+  const contRect = container.getBoundingClientRect();
+  return {
+    x: elRect.left + elRect.width / 2 - contRect.left,
+    y: elRect.top + elRect.height / 2 - contRect.top
+  };
+}
+
+function drawLines() {
+  const svg = document.getElementById('linesSvg');
+  const mainContainer = document.getElementById('mainContainer');
+  const centerCol = document.getElementById('colCenter');
+  const centerRect = centerCol.getBoundingClientRect();
+  const mainRect = mainContainer.getBoundingClientRect();
+
+  svg.setAttribute('viewBox', `0 0 ${centerRect.width} ${centerRect.height}`);
+  svg.style.width = centerRect.width + 'px';
+  svg.style.height = centerRect.height + 'px';
+
+  let lines = '';
+  drawnLines = [];
+
+  PACKAGES.forEach((pkg, pIdx) => {
+    const pkgEl = document.querySelector(`.package-card[data-pkg="${pIdx}"]`);
+    if (!pkgEl) return;
+    const pkgRect = pkgEl.getBoundingClientRect();
+    const pkgY = pkgRect.top + pkgRect.height / 2 - centerRect.top;
+    const x2 = centerRect.width;
+
+    pkg.coverages.forEach(cIdx => {
+      const covEl = document.querySelector(`.coverage-card[data-idx="${cIdx}"]`);
+      if (!covEl) return;
+      const covRect = covEl.getBoundingClientRect();
+      const covY = covRect.top + covRect.height / 2 - centerRect.top;
+      const x1 = 0;
+
+      const cpx1 = centerRect.width * 0.35;
+      const cpx2 = centerRect.width * 0.65;
+
+      const lineId = `line-${cIdx}-${pIdx}`;
+      lines += `<path id="${lineId}" class="conn-line" d="M ${x1} ${covY} C ${cpx1} ${covY}, ${cpx2} ${pkgY}, ${x2} ${pkgY}" data-cov="${cIdx}" data-pkg="${pIdx}"/>`;
+      drawnLines.push({ covIdx: cIdx, pkgIdx: pIdx, id: lineId });
+    });
+  });
+  svg.innerHTML = lines;
+
+  // Animate lines in
+  setTimeout(() => {
+    document.querySelectorAll('.conn-line').forEach(l => l.classList.add('visible'));
+  }, 800);
+}
+
+// ============================================================
+// INTERACTIVITY: HOVER + CLICK
+// ============================================================
+let activePackage = -1;
+
+function setupInteractions() {
+  // Package hover
+  document.querySelectorAll('.package-card').forEach(card => {
+    const pIdx = parseInt(card.dataset.pkg);
+
+    card.addEventListener('mouseenter', () => {
+      if (activePackage >= 0) return;
+      highlightPackage(pIdx);
+    });
+    card.addEventListener('mouseleave', () => {
+      if (activePackage >= 0) return;
+      clearHighlights();
+    });
+    card.addEventListener('click', () => {
+      if (activePackage === pIdx) {
+        activePackage = -1;
+        card.classList.remove('active');
+        clearHighlights();
+      } else {
+        document.querySelectorAll('.package-card').forEach(c => c.classList.remove('active'));
+        activePackage = pIdx;
+        card.classList.add('active');
+        highlightPackage(pIdx);
+      }
+    });
+  });
+
+  // Coverage hover
+  document.querySelectorAll('.coverage-card').forEach(card => {
+    const cIdx = parseInt(card.dataset.idx);
+    card.addEventListener('mouseenter', () => {
+      if (activePackage >= 0) return;
+      // Highlight all packages containing this coverage
+      document.querySelectorAll('.conn-line').forEach(l => {
+        if (parseInt(l.dataset.cov) === cIdx) {
+          l.classList.add('highlighted');
+          const pkgCard = document.querySelector(`.package-card[data-pkg="${l.dataset.pkg}"]`);
+          if (pkgCard) pkgCard.style.borderColor = 'var(--accent-red)';
+        }
+      });
+    });
+    card.addEventListener('mouseleave', () => {
+      if (activePackage >= 0) return;
+      clearHighlights();
+    });
+  });
+}
+
+function highlightPackage(pIdx) {
+  const pkg = PACKAGES[pIdx];
+  // Highlight coverage cards
+  document.querySelectorAll('.coverage-card').forEach(c => c.classList.remove('highlighted'));
+  pkg.coverages.forEach(cIdx => {
+    const covCard = document.querySelector(`.coverage-card[data-idx="${cIdx}"]`);
+    if (covCard) covCard.classList.add('highlighted');
+  });
+  // Highlight lines
+  document.querySelectorAll('.conn-line').forEach(l => {
+    if (parseInt(l.dataset.pkg) === pIdx) {
+      l.classList.add('highlighted');
+    } else {
+      l.style.opacity = '0.05';
+    }
+  });
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.coverage-card').forEach(c => c.classList.remove('highlighted'));
+  document.querySelectorAll('.conn-line').forEach(l => {
+    l.classList.remove('highlighted');
+    l.style.opacity = '';
+  });
+  document.querySelectorAll('.package-card').forEach(c => {
+    c.style.borderColor = '';
+  });
+}
+
+// ============================================================
+// DISCOUNT SLIDER
+// ============================================================
+function setupSlider() {
+  const slider = document.getElementById('discountSlider');
+  const discountVal = document.getElementById('discountVal');
+  const metricRevenue = document.getElementById('metricRevenue');
+  const metricTakeRate = document.getElementById('metricTakeRate');
+  const metricProfit = document.getElementById('metricProfit');
+  const insight = document.getElementById('tradeoffInsight');
+
+  function update() {
+    const d = parseInt(slider.value) / 100;
+    discountVal.textContent = slider.value + '%';
+
+    // Use auto_liability_basic as the example coverage
+    const cov = COVERAGES[0];
+    const affinity = 1.0; // neutral for demo
+    const revenue = cov.price * cov.margin * (1 - d);
+    const demand = cov.takeRate * affinity * (1 + 1.2 * d);
+    const profit = revenue * demand;
+
+    metricRevenue.textContent = '$' + revenue.toFixed(2);
+    metricRevenue.className = 'metric-value' + (revenue < 150 ? ' negative' : '');
+
+    metricTakeRate.textContent = demand.toFixed(2) + 'x';
+    metricProfit.textContent = '$' + profit.toFixed(2);
+    metricProfit.className = 'metric-value ' + (profit > 0 ? 'positive' : 'negative');
+
+    insight.innerHTML = `At <strong>${slider.value}%</strong> discount, expected contribution for this one coverage is <strong>$${profit.toFixed(2)}</strong>. ` +
+      (d < 0.15 ? 'Low discount: higher unit margin, but less demand lift.' :
+       d < 0.25 ? 'Middle discount: this one-coverage example balances unit margin and demand lift.' :
+       'High discount: stronger demand lift, but thinner unit margin.');
+
+    updateBarChart(cov, affinity);
+  }
+
+  slider.addEventListener('input', update);
+  update();
+}
+
+function updateBarChart(cov, affinity) {
+  const container = document.getElementById('barChart');
+  const discounts = [0, 5, 10, 15, 20, 25, 30, 35, 40];
+  const profits = discounts.map(d => {
+    const dd = d / 100;
+    return cov.price * cov.margin * (1 - dd) * cov.takeRate * affinity * (1 + 1.2 * dd);
+  });
+  const maxP = Math.max(...profits);
+  const currentD = parseInt(document.getElementById('discountSlider').value);
+
+  let html = '';
+  discounts.forEach((d, i) => {
+    const h = (profits[i] / maxP) * 100;
+    const isActive = d === currentD || (currentD > d - 3 && currentD < d + 3);
+    const color = isActive ? 'var(--accent-red)' : 'var(--platform-blue)';
+    const opacity = isActive ? 1 : 0.35;
+    html += `<div class="bar" style="height:${h}%; background:${color}; opacity:${opacity};">
+      <span class="bar-label">${d}%</span>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ============================================================
+// ENTRANCE ANIMATIONS
+// ============================================================
+function animateEntrance() {
+  // Stagger family groups from left
+  const groups = document.querySelectorAll('.family-group');
+  groups.forEach((g, i) => {
+    setTimeout(() => g.classList.add('visible'), 100 + i * 80);
+  });
+
+  // Stagger packages from right
+  const pkgs = document.querySelectorAll('.package-card');
+  pkgs.forEach((p, i) => {
+    setTimeout(() => p.classList.add('visible'), 300 + i * 80);
+  });
+
+  // Draw lines after elements are positioned
+  setTimeout(() => {
+    drawLines();
+  }, 600);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  renderCoverages();
+  renderPackages();
+  setupSlider();
+  setupInteractions();
+
+  // Wait for layout
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      animateEntrance();
+    });
+  });
+
+  // Redraw lines on resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(drawLines, 150);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

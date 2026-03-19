@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1.0">
+<title>QAOA - Quantum Approximate Optimization Algorithm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root {
+    --red: #E31837;
+    --red-light: #ff3a56;
+    --red-dark: #b8102a;
+    --charcoal: #2D2926;
+    --light-gray: #F5F5F5;
+    --platform-blue: #0066CC;
+    --yale-blue: #00356B;
+    --green: #22c55e;
+    --green-dark: #16a34a;
+    --orange: #f59e0b;
+    --white: #ffffff;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--light-gray);
+    color: var(--charcoal);
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--charcoal) 0%, var(--yale-blue) 100%);
+    color: white;
+    padding: 24px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .header h1 span { color: var(--red); }
+  .header .subtitle {
+    font-size: 14px;
+    color: var(--gray-400);
+    margin-top: 4px;
+  }
+  .header .badge {
+    background: var(--red);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Tab navigation */
+  .tabs {
+    display: flex;
+    background: var(--white);
+    border-bottom: 2px solid var(--gray-200);
+    padding: 0 48px;
+    gap: 0;
+  }
+  .tab {
+    padding: 14px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-500);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .tab:hover { color: var(--charcoal); }
+  .tab.active {
+    color: var(--red);
+    border-bottom-color: var(--red);
+  }
+
+  /* Main content */
+  .main { padding: 32px 48px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ==================== SECTION A: OPTIMIZATION LOOP ==================== */
+  .loop-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  .loop-visual {
+    position: relative;
+    height: 520px;
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+  }
+  .loop-visual svg { width: 100%; height: 100%; }
+
+  /* Loop boxes */
+  .loop-box {
+    position: absolute;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: default;
+  }
+  .loop-box:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+  .loop-box h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .loop-box p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .box-optimizer {
+    top: 20px; left: 50%; transform: translateX(-50%);
+    width: 260px;
+    background: linear-gradient(135deg, var(--platform-blue), var(--yale-blue));
+    color: white;
+    border: 2px solid var(--platform-blue);
+  }
+  .box-optimizer:hover { transform: translateX(-50%) scale(1.03); }
+  .box-circuit {
+    top: 50%; left: 20px; transform: translateY(-50%);
+    width: 220px;
+    background: linear-gradient(135deg, var(--red), var(--red-dark));
+    color: white;
+    border: 2px solid var(--red);
+  }
+  .box-circuit:hover { transform: translateY(-50%) scale(1.03); }
+  .box-measure {
+    top: 50%; right: 20px; transform: translateY(-50%);
+    width: 220px;
+    background: linear-gradient(135deg, var(--green-dark), #15803d);
+    color: white;
+    border: 2px solid var(--green);
+  }
+  .box-measure:hover { transform: translateY(-50%) scale(1.03); }
+  .box-converge {
+    bottom: 20px; left: 50%; transform: translateX(-50%);
+    width: 280px;
+    background: var(--white);
+    color: var(--charcoal);
+    border: 2px solid var(--orange);
+  }
+  .box-converge:hover { transform: translateX(-50%) scale(1.03); }
+
+  /* Animated arrows */
+  .loop-arrow {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  /* Animated dot */
+  @keyframes flowRight {
+    0% { offset-distance: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { offset-distance: 100%; opacity: 0; }
+  }
+
+  .flow-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    position: absolute;
+    animation: flowRight 2s linear infinite;
+  }
+
+  /* Energy convergence chart */
+  .convergence-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .convergence-chart {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    padding: 24px;
+    height: 280px;
+    position: relative;
+  }
+  .convergence-chart h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .chart-canvas { width: 100%; height: 210px; }
+
+  .key-insight {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    border-left: 4px solid var(--red);
+    padding: 24px;
+  }
+  .key-insight h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--red);
+    margin-bottom: 10px;
+  }
+  .key-insight p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--gray-700);
+  }
+  .key-insight .formula {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--gray-100);
+    padding: 8px 14px;
+    border-radius: 6px;
+    margin: 10px 0;
+    font-size: 13px;
+    display: inline-block;
+  }
+
+  /* Loop controls */
+  .loop-controls {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .loop-controls label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-600);
+  }
+  .btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-red {
+    background: var(--red);
+    color: white;
+  }
+  .btn-red:hover { background: var(--red-dark); }
+  .btn-outline {
+    background: transparent;
+    color: var(--gray-600);
+    border: 1px solid var(--gray-300);
+  }
+  .btn-outline:hover { background: var(--gray-100); }
+
+  .iteration-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--charcoal);
+    min-width: 160px;
+  }
+  .iteration-display span { color: var(--red); }
+
+  /* ==================== SECTION B: CIRCUIT DIAGRAM ==================== */
+  .circuit-container {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    padding: 32px;
+    overflow-x: auto;
+  }
+  .circuit-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .circuit-title-row h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .depth-toggle {
+    display: flex;
+    gap: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--gray-300);
+  }
+  .depth-btn {
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: var(--white);
+    color: var(--gray-600);
+    transition: all 0.2s;
+  }
+  .depth-btn.active {
+    background: var(--red);
+    color: white;
+  }
+  .depth-btn:hover:not(.active) { background: var(--gray-100); }
+
+  .circuit-svg-wrap {
+    overflow-x: auto;
+    padding: 8px 0;
+  }
+  .circuit-svg-wrap svg {
+    display: block;
+    min-width: 900px;
+  }
+
+  /* Circuit qubit labels */
+  .qubit-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    fill: var(--gray-600);
+    font-weight: 500;
+  }
+  .wire { stroke: var(--gray-400); stroke-width: 1.5; }
+
+  /* Gate styles */
+  .gate-rect {
+    rx: 6; ry: 6;
+    stroke-width: 2;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .gate-rect:hover { filter: brightness(1.1); stroke-width: 3; }
+  .gate-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    fill: white;
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .gate-h .gate-rect { fill: var(--gray-700); stroke: var(--charcoal); }
+  .gate-cost .gate-rect { fill: var(--platform-blue); stroke: var(--yale-blue); }
+  .gate-mixer .gate-rect { fill: var(--red); stroke: var(--red-dark); }
+  .gate-measure .gate-rect { fill: var(--gray-700); stroke: var(--charcoal); }
+
+  /* ZZ connection lines */
+  .zz-line {
+    stroke: var(--red);
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+    cursor: pointer;
+  }
+  .zz-line:hover { stroke-width: 3; stroke-dasharray: none; }
+  .zz-dot {
+    fill: var(--red);
+    cursor: pointer;
+  }
+
+  /* Gate tooltip */
+  .gate-tooltip {
+    position: fixed;
+    background: var(--charcoal);
+    color: white;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 320px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1000;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .gate-tooltip.visible { opacity: 1; }
+  .gate-tooltip .tt-title {
+    font-weight: 700;
+    color: var(--red-light);
+    margin-bottom: 4px;
+  }
+  .gate-tooltip code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.15);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* Expanded layer detail panels */
+  .layer-detail {
+    margin-top: 24px;
+    display: none;
+    border-radius: 12px;
+    border: 2px solid var(--gray-200);
+    overflow: hidden;
+  }
+  .layer-detail.visible { display: block; }
+  .layer-detail-header {
+    padding: 16px 24px;
+    font-weight: 700;
+    font-size: 15px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .layer-detail-header .close-x {
+    font-size: 18px;
+    opacity: 0.7;
+    cursor: pointer;
+  }
+  .layer-detail-header .close-x:hover { opacity: 1; }
+  .cost-detail .layer-detail-header { background: var(--platform-blue); }
+  .mixer-detail .layer-detail-header { background: var(--red); }
+  .layer-detail-body {
+    padding: 24px;
+    background: var(--white);
+  }
+  .layer-detail-body p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--gray-700);
+    margin-bottom: 10px;
+  }
+  .layer-detail-body .highlight {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #856404;
+    margin-top: 8px;
+  }
+  .layer-detail-body .gate-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .gate-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+  }
+  .gate-chip.rz { background: var(--platform-blue); }
+  .gate-chip.zz { background: var(--red); }
+  .gate-chip.rx { background: var(--red); }
+
+  /* ==================== SECTION C: DEPTH ==================== */
+  .depth-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .depth-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .depth-card {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .depth-card:hover { border-color: var(--red); }
+  .depth-card.selected { border-color: var(--red); border-width: 2px; }
+  .depth-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .depth-card h3 span { color: var(--red); }
+  .depth-card .stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 12px;
+  }
+  .depth-card .stat {
+    font-size: 13px;
+    color: var(--gray-600);
+  }
+  .depth-card .stat strong {
+    display: block;
+    font-size: 22px;
+    color: var(--charcoal);
+    font-weight: 800;
+  }
+  .depth-card .bar {
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 4px;
+    background: var(--red);
+    transition: width 0.5s ease;
+  }
+
+  .depth-visual {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    padding: 24px;
+  }
+  .depth-visual h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .tradeoff-chart { width: 100%; height: 320px; }
+
+  /* ==================== SECTION D: ENERGY LANDSCAPE ==================== */
+  .landscape-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+  }
+  .landscape-main {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    padding: 24px;
+  }
+  .landscape-main h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .landscape-main .sub {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-bottom: 16px;
+  }
+  .landscape-canvas-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1.4;
+    max-height: 480px;
+  }
+  .landscape-canvas-wrap canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    cursor: crosshair;
+  }
+
+  .landscape-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .landscape-info {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    padding: 20px;
+  }
+  .landscape-info h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .landscape-info p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--gray-600);
+  }
+  .landscape-info .warn {
+    background: #fef2f2;
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--red-dark);
+    margin-top: 10px;
+    font-weight: 600;
+  }
+
+  .landscape-controls {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    padding: 20px;
+  }
+  .landscape-controls h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .landscape-controls .btn { width: 100%; margin-bottom: 8px; }
+
+  /* Optimizer path legend */
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--gray-600);
+    margin-bottom: 6px;
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 20px 48px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--gray-500);
+    border-top: 1px solid var(--gray-200);
+    margin-top: 32px;
+  }
+
+  /* KaTeX overrides */
+  .katex { font-size: 1em; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <h1><span>QAOA</span> -- Quantum Approximate Optimization Algorithm</h1>
+    <div class="subtitle">|Y>Quantum 2026 Hackathon -- QAOA Explainer</div>
+  </div>
+  <div class="badge">Interactive Explainer</div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" data-section="loop">A. Optimization Loop</div>
+  <div class="tab" data-section="circuit">B. Inside the Circuit</div>
+  <div class="tab" data-section="depth">C. What Depth p Means</div>
+  <div class="tab" data-section="landscape">D. Energy Landscape</div>
+</div>
+
+<!-- Tooltip -->
+<div class="gate-tooltip" id="tooltip"></div>
+
+<div class="main">
+
+  <!-- ==================== SECTION A ==================== -->
+  <div class="section active" id="section-loop">
+    <div class="loop-controls" style="margin-bottom: 20px;">
+      <label>Animation:</label>
+      <button class="btn btn-red" id="btn-play" onclick="toggleLoop()">Play Loop</button>
+      <button class="btn btn-outline" onclick="resetLoop()">Reset</button>
+      <div class="iteration-display">Iteration: <span id="iter-count">0</span> / 12 &nbsp;&nbsp; Energy: <span id="iter-energy">--</span></div>
+    </div>
+    <div class="loop-container">
+      <div class="loop-visual" id="loop-visual">
+        <svg viewBox="0 0 520 520" id="loop-svg">
+          <!-- Arrows: curved paths -->
+          <defs>
+            <marker id="arrowR" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#E31837"/>
+            </marker>
+            <marker id="arrowB" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#0066CC"/>
+            </marker>
+            <marker id="arrowG" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#22c55e"/>
+            </marker>
+            <marker id="arrowO" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#f59e0b"/>
+            </marker>
+          </defs>
+
+          <!-- Arrow paths -->
+          <path id="path-opt-to-circ" d="M175,120 Q60,120 80,260" fill="none" stroke="#0066CC" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrowB)"/>
+          <path id="path-circ-to-meas" d="M180,320 Q260,420 360,320" fill="none" stroke="#E31837" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrowR)"/>
+          <path id="path-meas-to-conv" d="M430,320 Q500,420 370,440" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrowG)"/>
+          <path id="path-conv-to-opt" d="M260,430 Q100,460 200,120" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrowO)"/>
+
+          <!-- Flow labels -->
+          <text x="55" y="190" font-size="11" fill="#0066CC" font-weight="600" font-family="Inter">sends</text>
+          <text x="50" y="203" font-size="10" fill="#0066CC" font-family="Inter">parameters</text>
+          <text x="245" y="398" font-size="11" fill="#E31837" font-weight="600" font-family="Inter">measures</text>
+          <text x="240" y="411" font-size="10" fill="#E31837" font-family="Inter">bitstrings</text>
+          <text x="438" y="395" font-size="11" fill="#22c55e" font-weight="600" font-family="Inter">computes</text>
+          <text x="440" y="408" font-size="10" fill="#22c55e" font-family="Inter">energy</text>
+          <text x="120" y="458" font-size="11" fill="#f59e0b" font-weight="600" font-family="Inter">adjusts angles</text>
+        </svg>
+
+        <!-- Overlay boxes -->
+        <div class="loop-box box-optimizer">
+          <h3>Classical Optimizer</h3>
+          <p>COBYLA / Nelder-Mead<br>Picks angles <span class="katex-inline">\gamma, \beta</span></p>
+        </div>
+        <div class="loop-box box-circuit">
+          <h3>Quantum Circuit</h3>
+          <p>Evaluates cost<br>at given angles</p>
+        </div>
+        <div class="loop-box box-measure">
+          <h3>Measurement</h3>
+          <p>Sample bitstrings,<br>compute <span class="katex-inline">\langle H_{\text{cost}} \rangle</span></p>
+        </div>
+        <div class="loop-box box-converge" id="box-converge">
+          <h3 style="color: #b45309;">Convergence Check</h3>
+          <p style="color: #92400e;">Repeat until energy stops improving</p>
+        </div>
+
+        <!-- Animated flow dots -->
+        <div class="flow-dot" id="dot1" style="display:none; background: var(--platform-blue); offset-path: path('M175,120 Q60,120 80,260');"></div>
+        <div class="flow-dot" id="dot2" style="display:none; background: var(--red); offset-path: path('M180,320 Q260,420 360,320');"></div>
+        <div class="flow-dot" id="dot3" style="display:none; background: var(--green); offset-path: path('M430,320 Q500,420 370,440');"></div>
+        <div class="flow-dot" id="dot4" style="display:none; background: var(--orange); offset-path: path('M260,430 Q100,460 200,120');"></div>
+      </div>
+
+      <div class="convergence-panel">
+        <div class="convergence-chart">
+          <h3>Energy vs. Iteration</h3>
+          <canvas class="chart-canvas" id="convergence-canvas"></canvas>
+        </div>
+        <div class="key-insight">
+          <h3>Key Insight</h3>
+          <p>QAOA is <strong>variational</strong>: a classical optimizer tunes quantum circuit parameters in a feedback loop.</p>
+          <p style="margin-top:8px;">Think of it like <strong>black-box parameter tuning</strong>: the optimizer proposes angles, the quantum computer estimates the cost, and the loop repeats.</p>
+          <div class="formula">min_{gamma,beta} &lt;psi(gamma,beta)| H_cost |psi(gamma,beta)&gt;</div>
+          <p style="margin-top:8px;">Important distinction: QAOA minimizes an <strong>expected cost</strong>, but the candidate answers are the <strong>measured bitstrings</strong>. Low expectation value usually helps, but the final answer still comes from sampling.</p>
+          <p style="margin-top:8px;">The quantum computer explores many states in superposition; the classical optimizer only sees noisy estimates of their average cost and steers the angles from there.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION B ==================== -->
+  <div class="section" id="section-circuit">
+    <div class="circuit-container">
+      <div class="circuit-title-row">
+        <h2>QAOA Circuit for N=5 Qubits</h2>
+        <div>
+          <span style="font-size:13px; color:var(--gray-500); margin-right:12px;">Depth p =</span>
+          <div class="depth-toggle" id="circuit-depth-toggle">
+            <button class="depth-btn active" data-p="1">1</button>
+            <button class="depth-btn" data-p="2">2</button>
+            <button class="depth-btn" data-p="3">3</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--gray-600);">
+          <div style="width:16px;height:16px;border-radius:4px;background:var(--gray-700);"></div> Hadamard (H)
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--gray-600);">
+          <div style="width:16px;height:16px;border-radius:4px;background:var(--platform-blue);"></div> Cost Layer (click to expand)
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--gray-600);">
+          <div style="width:16px;height:16px;border-radius:4px;background:var(--red);"></div> Mixer Layer (click to expand)
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--gray-600);">
+          <div style="width:16px;height:16px;border-radius:4px;background:var(--gray-700);"></div> Measurement
+        </div>
+      </div>
+
+      <div class="key-insight" style="margin-bottom:20px; padding:18px 22px;">
+        <h3>How To Read This Circuit</h3>
+        <p>The diagram is <strong>symbolic</strong>: it shows how the QUBO terms map into quantum operations. Single-variable terms become one-qubit phase rotations; pairwise terms become ZZ couplings. The hardware API writes <code>ZZPhase</code> in half-turn units, so code-level angles will not look identical to textbook radians.</p>
+      </div>
+
+      <div class="circuit-svg-wrap" id="circuit-svg-wrap">
+        <!-- Circuit SVG drawn by JS -->
+      </div>
+
+      <!-- Cost layer detail -->
+      <div class="layer-detail cost-detail" id="cost-detail">
+        <div class="layer-detail-header" onclick="document.getElementById('cost-detail').classList.remove('visible')">
+          Cost Layer Expanded: Encoding the Problem
+          <span class="close-x">X</span>
+        </div>
+        <div class="layer-detail-body">
+          <p>The cost layer translates the QUBO objective into quantum gates. For each qubit (coverage), and each pair of qubits (constraint), we apply rotations proportional to their coefficients.</p>
+          <div class="gate-list">
+            <div class="gate-chip rz">Rz(gamma * c_i) per qubit</div>
+            <div class="gate-chip zz">ZZPhase(gamma * lambda * w_ij) per pair</div>
+          </div>
+          <table style="width:100%; border-collapse:collapse; margin:14px 0; font-size:13px;">
+            <thead>
+              <tr style="background:#f8fafc; color:#475569;">
+                <th style="text-align:left; padding:10px 12px; border:1px solid #e5e7eb;">QUBO term</th>
+                <th style="text-align:left; padding:10px 12px; border:1px solid #e5e7eb;">What it means</th>
+                <th style="text-align:left; padding:10px 12px; border:1px solid #e5e7eb;">Circuit picture</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:10px 12px; border:1px solid #e5e7eb;"><code>x_i</code></td>
+                <td style="padding:10px 12px; border:1px solid #e5e7eb;">Reward or penalize selecting one coverage</td>
+                <td style="padding:10px 12px; border:1px solid #e5e7eb;">One-qubit <code>Rz</code> phase rotation</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 12px; border:1px solid #e5e7eb;"><code>x_i x_j</code></td>
+                <td style="padding:10px 12px; border:1px solid #e5e7eb;">Couple two selections through a constraint or interaction</td>
+                <td style="padding:10px 12px; border:1px solid #e5e7eb;">Two-qubit <code>ZZPhase</code> interaction</td>
+              </tr>
+            </tbody>
+          </table>
+          <p><strong>Rz gates</strong> encode each coverage's profit contribution. The rotation angle is proportional to the coverage's objective coefficient <code>c_i</code>.</p>
+          <p><strong>ZZPhase gates</strong> encode constraint penalties between coverage pairs. The rotation angle depends on the penalty weight <code>w_ij</code> and penalty strength <code>lambda</code>.</p>
+          <p><strong>Notation note:</strong> In <code>pytket</code>, <code>ZZPhase(alpha)</code> implements <code>exp(-i * pi * alpha / 2 * Z⊗Z)</code>, so the API parameter <code>alpha</code> is written in half-turns rather than in raw radians.</p>
+          <div class="highlight">
+            ZZPhase is a native two-qubit gate here, so this style of cost layer maps especially naturally to the trapped-ion gate set.
+          </div>
+        </div>
+      </div>
+
+      <!-- Mixer layer detail -->
+      <div class="layer-detail mixer-detail" id="mixer-detail">
+        <div class="layer-detail-header" onclick="document.getElementById('mixer-detail').classList.remove('visible')">
+          Mixer Layer Expanded: Exploring Solutions
+          <span class="close-x">X</span>
+        </div>
+        <div class="layer-detail-body">
+          <p>The mixer layer applies <strong>Rx(2*beta)</strong> rotations to every qubit. This rotates each qubit's state, allowing the quantum state to explore new candidate solutions.</p>
+          <div class="gate-list">
+            <div class="gate-chip rx">Rx(2*beta) per qubit</div>
+          </div>
+          <p>Without the mixer, the circuit would stay stuck in the initial superposition. The mixer "stirs" the quantum state, letting probability amplitude flow between different bitstrings (candidate solutions).</p>
+          <p>This explainer uses the <strong>standard X-mixer</strong>. It does <em>not</em> preserve hard feasibility during the circuit, so infeasible bitstrings can still appear in the state. In this challenge, feasibility is encouraged mainly through penalty terms in the cost layer.</p>
+          <p>The balance between cost layer (exploitation) and mixer layer (exploration) is controlled by the angles <code>gamma</code> and <code>beta</code> -- this is what the classical optimizer tunes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION C ==================== -->
+  <div class="section" id="section-depth">
+    <div class="depth-container">
+      <div class="key-insight" style="grid-column: 1 / -1; margin:0;">
+        <h3>Read These Numbers Carefully</h3>
+        <p>The <strong>p = 1, 2, 3</strong> values on this page are illustrative toy numbers for the five-qubit teaching circuit shown here. They are meant to explain the depth tradeoff, not to claim theorem-backed approximation ratios for the full insurance instance.</p>
+      </div>
+      <div class="depth-cards" id="depth-cards">
+        <div class="depth-card selected" data-p="1" onclick="selectDepthCard(1)">
+          <h3>p = <span>1</span></h3>
+          <p style="font-size:14px; color:var(--gray-600);">One cost + mixer layer. Coarse exploration of the solution space.</p>
+          <div class="stats">
+            <div class="stat">
+              <strong>~0.69</strong>
+              Illustrative ratio
+            </div>
+            <div class="stat">
+              <strong>2</strong>
+              Parameters
+            </div>
+            <div class="stat">
+              <strong>~30</strong>
+              Toy gates (N=5)
+            </div>
+          </div>
+          <div class="bar" style="width:69%;"></div>
+        </div>
+        <div class="depth-card" data-p="2" onclick="selectDepthCard(2)">
+          <h3>p = <span>2</span></h3>
+          <p style="font-size:14px; color:var(--gray-600);">Two layers. Better optimization with a richer parameter landscape.</p>
+          <div class="stats">
+            <div class="stat">
+              <strong>~0.84</strong>
+              Illustrative ratio
+            </div>
+            <div class="stat">
+              <strong>4</strong>
+              Parameters
+            </div>
+            <div class="stat">
+              <strong>~55</strong>
+              Toy gates (N=5)
+            </div>
+          </div>
+          <div class="bar" style="width:84%;"></div>
+        </div>
+        <div class="depth-card" data-p="3" onclick="selectDepthCard(3)">
+          <h3>p = <span>3</span></h3>
+          <p style="font-size:14px; color:var(--gray-600);">Three layers. Near-optimal but deeper circuit means more noise on real hardware.</p>
+          <div class="stats">
+            <div class="stat">
+              <strong>~0.92</strong>
+              Illustrative ratio
+            </div>
+            <div class="stat">
+              <strong>6</strong>
+              Parameters
+            </div>
+            <div class="stat">
+              <strong>~80</strong>
+              Toy gates (N=5)
+            </div>
+          </div>
+          <div class="bar" style="width:92%;"></div>
+        </div>
+      </div>
+
+      <div class="depth-visual">
+        <h3>The Depth-Quality Tradeoff</h3>
+        <canvas class="tradeoff-chart" id="tradeoff-canvas"></canvas>
+        <div style="margin-top: 16px;">
+          <div class="key-insight" style="margin:0;">
+            <h3>The Tradeoff</h3>
+            <p>More layers (higher p) can improve the best reachable objective, but they also cost more:</p>
+            <p style="margin-top:6px;">
+              -- More parameters for the optimizer to tune (harder optimization)<br>
+              -- Deeper circuit = more gates = more noise on real hardware<br>
+              -- Diminishing returns: going from p=1 to p=2 helps a lot, p=10 to p=11 barely matters
+            </p>
+            <p style="margin-top:8px; font-weight:600;">For the challenge's package-local blocks, p=1 or p=2 is a practical starting point on near-term hardware, not a guaranteed optimum.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION D ==================== -->
+  <div class="section" id="section-landscape">
+    <div class="landscape-container">
+      <div class="landscape-main">
+        <h3>Energy Landscape: E(gamma, beta)</h3>
+        <p class="sub">A synthetic teaching surface for p=1. It shows why parameter optimization can be smooth in some regions and trap-filled in others.</p>
+        <div class="landscape-canvas-wrap">
+          <canvas id="landscape-canvas"></canvas>
+        </div>
+        <div style="display:flex; gap:20px; margin-top:12px; flex-wrap: wrap;">
+          <div class="legend-item"><div class="legend-dot" style="background:#fff;border:2px solid var(--charcoal);"></div> Optimizer path (white dots)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div> Global minimum (goal)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--orange);"></div> Local minimum (trap!)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div> Starting point</div>
+        </div>
+      </div>
+      <div class="landscape-sidebar">
+        <div class="landscape-info">
+          <h4>What Am I Looking At?</h4>
+          <p>This is a <strong>synthetic</strong> 2D contour plot of the expected energy as a function of the two QAOA parameters (gamma and beta) for <strong>p = 1</strong>.</p>
+          <p style="margin-top:8px;">Dark blue = low energy (good solutions). Yellow/red = high energy (bad solutions).</p>
+          <p style="margin-top:8px;">The white dots trace the optimizer's path from start to convergence. For larger p, the true landscape lives in <strong>2p dimensions</strong>, not just two.</p>
+        </div>
+        <div class="landscape-info">
+          <h4>Local Minima = Traps</h4>
+          <p>The landscape has multiple valleys. A local search method can get stuck in a nearby minimum instead of finding the global best one.</p>
+          <div class="warn">Watch out for local minima! Multi-start strategies or better optimizers (COBYLA, SPSA) can help escape traps.</div>
+        </div>
+        <div class="landscape-controls">
+          <h4>Controls</h4>
+          <button class="btn btn-red" onclick="animateLandscapePath()">Animate Optimizer Path</button>
+          <button class="btn btn-outline" onclick="resetLandscape()">Reset</button>
+          <button class="btn btn-outline" onclick="randomStartLandscape()">Random Start Point</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  |Y>Quantum 2026 -- Sponsor Challenge Materials -- QAOA Interactive Explainer
+</div>
+
+<script>
+// ===== TAB SWITCHING =====
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('section-' + tab.dataset.section).classList.add('active');
+    // Render on first show
+    if (tab.dataset.section === 'circuit' && !circuitDrawn) drawCircuit(1);
+    if (tab.dataset.section === 'depth' && !tradeoffDrawn) drawTradeoff();
+    if (tab.dataset.section === 'landscape' && !landscapeDrawn) drawLandscape();
+  });
+});
+
+// ===== SECTION A: OPTIMIZATION LOOP =====
+const energyData = [
+  -120, -145, -168, -182, -195, -208, -225, -238, -250, -258, -262, -264, -264.5
+];
+let loopPlaying = false;
+let loopIter = 0;
+let loopTimer = null;
+
+function drawConvergence(upTo) {
+  const canvas = document.getElementById('convergence-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.clientWidth * 2;
+  const H = canvas.height = canvas.clientHeight * 2;
+  ctx.scale(2, 2);
+  const w = W/2, h = H/2;
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = {t:10, r:20, b:30, l:50};
+  const pw = w - pad.l - pad.r;
+  const ph = h - pad.t - pad.b;
+
+  // Axes
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t);
+  ctx.lineTo(pad.l, h - pad.b);
+  ctx.lineTo(w - pad.r, h - pad.b);
+  ctx.stroke();
+
+  // Y labels
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '11px Inter';
+  ctx.textAlign = 'right';
+  const yMin = -280, yMax = -100;
+  for (let v = -100; v >= -280; v -= 40) {
+    const y = pad.t + ph * (1 - (v - yMin) / (yMax - yMin));
+    ctx.fillText(v.toString(), pad.l - 8, y + 4);
+    ctx.beginPath();
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.moveTo(pad.l, y);
+    ctx.lineTo(w - pad.r, y);
+    ctx.stroke();
+  }
+
+  // X labels
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 12; i += 2) {
+    const x = pad.l + pw * i / 12;
+    ctx.fillText(i.toString(), x, h - pad.b + 16);
+  }
+  ctx.fillText('Iteration', w/2, h - 2);
+
+  // Data line
+  if (upTo < 1) return;
+  ctx.beginPath();
+  ctx.strokeStyle = '#E31837';
+  ctx.lineWidth = 2.5;
+  for (let i = 0; i < Math.min(upTo + 1, energyData.length); i++) {
+    const x = pad.l + pw * i / 12;
+    const y = pad.t + ph * (1 - (energyData[i] - yMin) / (yMax - yMin));
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Dots
+  ctx.fillStyle = '#E31837';
+  for (let i = 0; i < Math.min(upTo + 1, energyData.length); i++) {
+    const x = pad.l + pw * i / 12;
+    const y = pad.t + ph * (1 - (energyData[i] - yMin) / (yMax - yMin));
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function toggleLoop() {
+  if (loopPlaying) {
+    loopPlaying = false;
+    clearInterval(loopTimer);
+    document.getElementById('btn-play').textContent = 'Play Loop';
+    hideDots();
+  } else {
+    if (loopIter >= 12) resetLoop();
+    loopPlaying = true;
+    document.getElementById('btn-play').textContent = 'Pause';
+    showDots();
+    loopTimer = setInterval(() => {
+      loopIter++;
+      document.getElementById('iter-count').textContent = loopIter;
+      document.getElementById('iter-energy').textContent = energyData[loopIter].toFixed(1);
+      drawConvergence(loopIter);
+      highlightActiveBox(loopIter % 4);
+      if (loopIter >= 12) {
+        clearInterval(loopTimer);
+        loopPlaying = false;
+        document.getElementById('btn-play').textContent = 'Play Loop';
+        document.getElementById('box-converge').querySelector('p').textContent = 'Converged!';
+        document.getElementById('box-converge').style.borderColor = '#22c55e';
+        hideDots();
+      }
+    }, 800);
+  }
+}
+
+function resetLoop() {
+  loopIter = 0;
+  loopPlaying = false;
+  clearInterval(loopTimer);
+  document.getElementById('btn-play').textContent = 'Play Loop';
+  document.getElementById('iter-count').textContent = '0';
+  document.getElementById('iter-energy').textContent = '--';
+  document.getElementById('box-converge').querySelector('p').textContent = 'Repeat until energy stops improving';
+  document.getElementById('box-converge').style.borderColor = '#f59e0b';
+  drawConvergence(0);
+  hideDots();
+}
+
+function showDots() {
+  for (let i = 1; i <= 4; i++) {
+    const d = document.getElementById('dot' + i);
+    d.style.display = 'block';
+  }
+}
+function hideDots() {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('dot' + i).style.display = 'none';
+  }
+}
+
+function highlightActiveBox(phase) {
+  // Simple pulse effect
+  const boxes = ['.box-optimizer', '.box-circuit', '.box-measure', '.box-converge'];
+  boxes.forEach((sel, i) => {
+    const el = document.querySelector(sel);
+    el.style.boxShadow = i === phase ? '0 0 20px rgba(227,24,55,0.4)' : 'none';
+  });
+}
+
+// Init convergence
+drawConvergence(0);
+
+// ===== SECTION B: CIRCUIT DIAGRAM =====
+let circuitDrawn = false;
+let currentDepthP = 1;
+
+const coverageNames = ['auto_liability', 'auto_collision', 'auto_comprehensive', 'auto_roadside', 'home_dwelling'];
+const zzPairs = [[0,2], [1,3], [0,4], [2,3]]; // example constraint pairs
+
+function drawCircuit(p) {
+  circuitDrawn = true;
+  currentDepthP = p;
+  const wrap = document.getElementById('circuit-svg-wrap');
+
+  const nQubits = 5;
+  const yStart = 40;
+  const ySpacing = 52;
+  const xStart = 140;
+  const gateW = 48;
+  const gateH = 36;
+  const gateGap = 16;
+  const layerGap = 24;
+
+  // Calculate widths
+  const hBlockW = gateW + gateGap;
+  const costBlockW = gateW + gateGap;
+  const zzBlockW = gateW + gateGap;
+  const mixerBlockW = gateW + gateGap;
+  const measureBlockW = gateW + gateGap;
+
+  // Per layer: cost(Rz) + cost(ZZ) + mixer(Rx)
+  const perLayerW = costBlockW + zzBlockW + mixerBlockW + layerGap;
+  const totalW = xStart + hBlockW + perLayerW * p + measureBlockW + 60;
+  const totalH = yStart + ySpacing * (nQubits - 1) + 50;
+
+  let svg = `<svg viewBox="0 0 ${totalW} ${totalH}" width="${totalW}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Wires
+  for (let q = 0; q < nQubits; q++) {
+    const y = yStart + q * ySpacing;
+    svg += `<line x1="10" y1="${y}" x2="${totalW - 10}" y2="${y}" class="wire"/>`;
+    // Label
+    svg += `<text x="8" y="${y + 4}" class="qubit-label" text-anchor="end" font-size="11">|0&rang;</text>`;
+    svg += `<text x="22" y="${y + 4}" font-family="JetBrains Mono" font-size="10" fill="#9ca3af">${coverageNames[q].substring(0, 12)}</text>`;
+  }
+
+  let xCursor = xStart;
+
+  // Hadamard gates
+  for (let q = 0; q < nQubits; q++) {
+    const y = yStart + q * ySpacing;
+    svg += gateRect(xCursor, y, gateW, gateH, 'H', 'gate-h', `Hadamard gate on q${q}: Creates equal superposition of |0> and |1>. This initializes the search over all 2^N possible bitstrings.`);
+  }
+  xCursor += hBlockW;
+
+  // Layers
+  for (let layer = 0; layer < p; layer++) {
+    const gamma = `gamma_${layer+1}`;
+    const beta = `beta_${layer+1}`;
+
+    // Cost: Rz gates
+    for (let q = 0; q < nQubits; q++) {
+      const y = yStart + q * ySpacing;
+      svg += gateRect(xCursor, y, gateW, gateH, `Rz`, 'gate-cost',
+        `Rz(${gamma} * c_${q}) on qubit ${q} (${coverageNames[q]})\n\nRotates qubit by angle proportional to this coverage's profit coefficient. Encodes the linear term of the QUBO objective.`,
+        'cost');
+    }
+    xCursor += costBlockW;
+
+    // Cost: ZZ gates
+    for (const [a, b] of zzPairs) {
+      const ya = yStart + a * ySpacing;
+      const yb = yStart + b * ySpacing;
+      // Vertical dashed line
+      svg += `<line x1="${xCursor + gateW/2}" y1="${ya}" x2="${xCursor + gateW/2}" y2="${yb}" class="zz-line"
+        data-tooltip="ZZPhase(${gamma} * lambda * w_{${a},${b}}) between ${coverageNames[a]} and ${coverageNames[b]}\n\nEnforces constraint/penalty between this pair. Native on this trapped-ion gate set -- zero decomposition overhead!"/>`;
+      svg += `<circle cx="${xCursor + gateW/2}" cy="${ya}" r="5" class="zz-dot"
+        data-tooltip="ZZPhase connection point: qubit ${a} (${coverageNames[a]})"/>`;
+      svg += `<circle cx="${xCursor + gateW/2}" cy="${yb}" r="5" class="zz-dot"
+        data-tooltip="ZZPhase connection point: qubit ${b} (${coverageNames[b]})"/>`;
+    }
+    // Small ZZ label
+    svg += `<text x="${xCursor + gateW/2}" y="${yStart + (nQubits) * ySpacing + 5}" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#E31837" font-weight="600">ZZPhase</text>`;
+    xCursor += zzBlockW;
+
+    // Mixer: Rx gates
+    for (let q = 0; q < nQubits; q++) {
+      const y = yStart + q * ySpacing;
+      svg += gateRect(xCursor, y, gateW, gateH, `Rx`, 'gate-mixer',
+        `Rx(2*${beta}) on qubit ${q}\n\nMixer gate: rotates qubit around X-axis. Allows probability to flow between |0> and |1>, exploring new candidate solutions.`,
+        'mixer');
+    }
+    xCursor += mixerBlockW;
+
+    // Layer bracket
+    const lx1 = xCursor - costBlockW - zzBlockW - mixerBlockW - 4;
+    const lx2 = xCursor - 4;
+    svg += `<rect x="${lx1}" y="${yStart - 24}" width="${lx2 - lx1}" height="8" rx="4" fill="${layer % 2 === 0 ? '#e0e7ff' : '#fce7f3'}" opacity="0.5"/>`;
+    svg += `<text x="${(lx1+lx2)/2}" y="${yStart - 28}" text-anchor="middle" font-family="Inter" font-size="11" fill="#6b7280" font-weight="600">Layer ${layer+1}</text>`;
+
+    xCursor += layerGap;
+  }
+
+  // Measurement
+  for (let q = 0; q < nQubits; q++) {
+    const y = yStart + q * ySpacing;
+    svg += gateRect(xCursor, y, gateW, gateH, 'M', 'gate-measure', `Measurement on qubit ${q}: Collapses superposition to a classical bit (0 or 1). The resulting bitstring represents a candidate insurance bundle.`);
+  }
+
+  svg += `</svg>`;
+  wrap.innerHTML = svg;
+
+  // Add event listeners
+  addCircuitListeners();
+}
+
+function gateRect(x, y, w, h, label, cls, tooltip, layerType) {
+  const extra = tooltip ? `data-tooltip="${tooltip.replace(/"/g, '&quot;')}"` : '';
+  const layerAttr = layerType ? `data-layer="${layerType}"` : '';
+  return `<g class="${cls}" ${extra} ${layerAttr}>
+    <rect class="gate-rect" x="${x - w/2}" y="${y - h/2}" width="${w}" height="${h}"/>
+    <text class="gate-text" x="${x}" y="${y}">${label}</text>
+  </g>`;
+}
+
+function addCircuitListeners() {
+  const tooltip = document.getElementById('tooltip');
+
+  document.querySelectorAll('[data-tooltip]').forEach(el => {
+    el.addEventListener('mouseenter', e => {
+      const text = el.getAttribute('data-tooltip');
+      const lines = text.split('\n');
+      tooltip.innerHTML = `<div class="tt-title">${lines[0]}</div>${lines.slice(1).map(l => `<div>${l}</div>`).join('')}`;
+      tooltip.classList.add('visible');
+    });
+    el.addEventListener('mousemove', e => {
+      tooltip.style.left = (e.clientX + 16) + 'px';
+      tooltip.style.top = (e.clientY - 10) + 'px';
+    });
+    el.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+    // Click to expand layer details
+    el.addEventListener('click', () => {
+      const layer = el.getAttribute('data-layer');
+      if (layer === 'cost') {
+        document.getElementById('cost-detail').classList.toggle('visible');
+        document.getElementById('mixer-detail').classList.remove('visible');
+      } else if (layer === 'mixer') {
+        document.getElementById('mixer-detail').classList.toggle('visible');
+        document.getElementById('cost-detail').classList.remove('visible');
+      }
+    });
+  });
+}
+
+// Depth toggle for circuit
+document.getElementById('circuit-depth-toggle').addEventListener('click', e => {
+  if (e.target.classList.contains('depth-btn')) {
+    document.querySelectorAll('#circuit-depth-toggle .depth-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    drawCircuit(parseInt(e.target.dataset.p));
+  }
+});
+
+// ===== SECTION C: TRADEOFF CHART =====
+let tradeoffDrawn = false;
+
+function drawTradeoff() {
+  tradeoffDrawn = true;
+  const canvas = document.getElementById('tradeoff-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.clientWidth * 2;
+  const H = canvas.height = canvas.clientHeight * 2;
+  ctx.scale(2, 2);
+  const w = W/2, h = H/2;
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = {t:30, r:60, b:40, l:60};
+  const pw = w - pad.l - pad.r;
+  const ph = h - pad.t - pad.b;
+
+  // Data
+  const pVals = [1, 2, 3, 4, 5, 6, 8, 10];
+  const approxRatios = [0.69, 0.84, 0.92, 0.95, 0.97, 0.98, 0.99, 0.995];
+  const gateCountsNorm = [30, 55, 80, 105, 130, 155, 205, 255]; // approx for N=5
+  const noiseProb = [0.95, 0.88, 0.80, 0.72, 0.64, 0.56, 0.42, 0.30]; // fidelity
+
+  // Axes
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t);
+  ctx.lineTo(pad.l, h - pad.b);
+  ctx.lineTo(w - pad.r, h - pad.b);
+  ctx.stroke();
+
+  // X axis
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '11px Inter';
+  ctx.textAlign = 'center';
+  pVals.forEach((p, i) => {
+    const x = pad.l + pw * i / (pVals.length - 1);
+    ctx.fillText('p=' + p, x, h - pad.b + 18);
+  });
+
+  // Left Y axis (illustrative ratio)
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#0066CC';
+  for (let v = 0.6; v <= 1.01; v += 0.1) {
+    const y = pad.t + ph * (1 - (v - 0.5) / 0.55);
+    ctx.fillText(v.toFixed(1), pad.l - 8, y + 4);
+  }
+  ctx.save();
+  ctx.translate(14, pad.t + ph/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign = 'center';
+  ctx.font = '12px Inter';
+  ctx.fillText('Illustrative Ratio', 0, 0);
+  ctx.restore();
+
+  // Right Y axis (fidelity)
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#E31837';
+  for (let v = 0.2; v <= 1.01; v += 0.2) {
+    const y = pad.t + ph * (1 - (v - 0) / 1.1);
+    ctx.fillText(v.toFixed(1), w - pad.r + 8, y + 4);
+  }
+  ctx.save();
+  ctx.translate(w - 10, pad.t + ph/2);
+  ctx.rotate(Math.PI/2);
+  ctx.textAlign = 'center';
+  ctx.font = '12px Inter';
+  ctx.fillText('Circuit Fidelity', 0, 0);
+  ctx.restore();
+
+  // Plot approx ratio (blue line)
+  ctx.beginPath();
+  ctx.strokeStyle = '#0066CC';
+  ctx.lineWidth = 2.5;
+  pVals.forEach((p, i) => {
+    const x = pad.l + pw * i / (pVals.length - 1);
+    const y = pad.t + ph * (1 - (approxRatios[i] - 0.5) / 0.55);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  // Dots
+  ctx.fillStyle = '#0066CC';
+  pVals.forEach((p, i) => {
+    const x = pad.l + pw * i / (pVals.length - 1);
+    const y = pad.t + ph * (1 - (approxRatios[i] - 0.5) / 0.55);
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Plot fidelity (red line)
+  ctx.beginPath();
+  ctx.strokeStyle = '#E31837';
+  ctx.lineWidth = 2.5;
+  pVals.forEach((p, i) => {
+    const x = pad.l + pw * i / (pVals.length - 1);
+    const y = pad.t + ph * (1 - (noiseProb[i] - 0) / 1.1);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.fillStyle = '#E31837';
+  pVals.forEach((p, i) => {
+    const x = pad.l + pw * i / (pVals.length - 1);
+    const y = pad.t + ph * (1 - (noiseProb[i] - 0) / 1.1);
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Illustrative sweet spot annotation
+  const sweetX = pad.l + pw * 1 / (pVals.length - 1);
+  const sweetY = pad.t + ph * (1 - (0.84 - 0.5) / 0.55);
+  ctx.beginPath();
+  ctx.arc(sweetX, sweetY, 14, 0, Math.PI * 2);
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.fillStyle = '#22c55e';
+  ctx.font = 'bold 11px Inter';
+  ctx.textAlign = 'left';
+  ctx.fillText('Illustrative sweet spot', sweetX + 20, sweetY - 4);
+
+  // Conceptual crossover annotation
+  const crossX = pad.l + pw * 3 / (pVals.length - 1);
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = '11px Inter';
+  ctx.textAlign = 'center';
+  ctx.fillText('Conceptual crossover', crossX + 10, pad.t + 16);
+
+  // Legend
+  ctx.font = '12px Inter';
+  const lx = pad.l + 10;
+  ctx.fillStyle = '#0066CC';
+  ctx.fillRect(lx, pad.t + 4, 20, 3);
+  ctx.textAlign = 'left';
+  ctx.fillText('Illustrative ratio (higher = better)', lx + 26, pad.t + 10);
+  ctx.fillStyle = '#E31837';
+  ctx.fillRect(lx, pad.t + 20, 20, 3);
+  ctx.fillText('Illustrative circuit fidelity', lx + 26, pad.t + 26);
+}
+
+function selectDepthCard(p) {
+  document.querySelectorAll('.depth-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`.depth-card[data-p="${p}"]`).classList.add('selected');
+}
+
+// ===== SECTION D: ENERGY LANDSCAPE =====
+let landscapeDrawn = false;
+let landscapePathPoints = [];
+let landscapeAnimating = false;
+let landscapeInterval = null;
+
+// Generate landscape data (synthetic QAOA-like)
+function energy(g, b) {
+  // Multiple minima landscape
+  return 0.5 * Math.cos(2.8 * g) * Math.cos(3.2 * b)
+       + 0.3 * Math.sin(1.5 * g + 0.7) * Math.cos(2.1 * b - 0.3)
+       + 0.2 * Math.cos(4.5 * g) * Math.sin(3.8 * b)
+       - 0.4 * Math.exp(-2 * ((g - 1.8)**2 + (b - 1.2)**2))
+       - 0.25 * Math.exp(-3 * ((g - 0.7)**2 + (b - 2.5)**2));
+}
+
+// Numerically checked extrema of the synthetic landscape over [0, pi]^2.
+const LANDSCAPE_MARKERS = {
+  global: { g: 0.894, b: 1.973, color: '#E31837', label: 'Global min' },
+  local: { g: 2.157, b: 0.809, color: '#f59e0b', label: 'Local min (trap!)' },
+};
+
+function drawLandscape() {
+  landscapeDrawn = true;
+  const canvas = document.getElementById('landscape-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.clientWidth * 2;
+  const H = canvas.height = canvas.clientHeight * 2;
+  ctx.scale(2, 2);
+  const w = W/2, h = H/2;
+
+  const pad = {t:30, r:30, b:40, l:50};
+  const pw = w - pad.l - pad.r;
+  const ph = h - pad.t - pad.b;
+
+  // Sample energy
+  const res = 120;
+  const gRange = [0, Math.PI];
+  const bRange = [0, Math.PI];
+  let minE = Infinity, maxE = -Infinity;
+  const grid = [];
+  for (let i = 0; i < res; i++) {
+    grid[i] = [];
+    for (let j = 0; j < res; j++) {
+      const g = gRange[0] + (gRange[1] - gRange[0]) * i / (res - 1);
+      const b = bRange[0] + (bRange[1] - bRange[0]) * j / (res - 1);
+      const e = energy(g, b);
+      grid[i][j] = e;
+      if (e < minE) minE = e;
+      if (e > maxE) maxE = e;
+    }
+  }
+
+  // Color map (viridis-like)
+  function colorMap(t) {
+    // t in [0,1], 0 = dark blue (low energy = good), 1 = yellow (high energy = bad)
+    const r = Math.floor(68 + t * 187);
+    const g = Math.floor(1 + t * 60 + (1-t) * 80 + t*t*140);
+    const b = Math.floor(84 + (1-t) * 150 - t * 40);
+    return `rgb(${Math.min(255,r)},${Math.min(255,g)},${Math.max(0,b)})`;
+  }
+
+  // Draw heatmap
+  const cellW = pw / res;
+  const cellH = ph / res;
+  for (let i = 0; i < res; i++) {
+    for (let j = 0; j < res; j++) {
+      const t = (grid[i][j] - minE) / (maxE - minE);
+      ctx.fillStyle = colorMap(t);
+      ctx.fillRect(pad.l + i * cellW, pad.t + j * cellH, cellW + 1, cellH + 1);
+    }
+  }
+
+  // Axes labels
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 13px Inter';
+  ctx.textAlign = 'center';
+  ctx.fillText('gamma', pad.l + pw/2, h - 6);
+  ctx.save();
+  ctx.translate(14, pad.t + ph/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('beta', 0, 0);
+  ctx.restore();
+
+  // Tick marks
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  for (let v = 0; v <= Math.PI; v += Math.PI/4) {
+    const x = pad.l + pw * v / Math.PI;
+    ctx.fillText((v/Math.PI).toFixed(2) + 'pi', x, h - pad.b + 14);
+  }
+  ctx.textAlign = 'right';
+  for (let v = 0; v <= Math.PI; v += Math.PI/4) {
+    const y = pad.t + ph * v / Math.PI;
+    ctx.fillText((v/Math.PI).toFixed(2) + 'pi', pad.l - 6, y + 4);
+  }
+
+  // Mark the actual global minimum of the synthetic landscape.
+  const gmX = pad.l + pw * LANDSCAPE_MARKERS.global.g / Math.PI;
+  const gmY = pad.t + ph * LANDSCAPE_MARKERS.global.b / Math.PI;
+  ctx.beginPath();
+  ctx.arc(gmX, gmY, 8, 0, Math.PI * 2);
+  ctx.strokeStyle = LANDSCAPE_MARKERS.global.color;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.fillStyle = LANDSCAPE_MARKERS.global.color;
+  ctx.font = 'bold 11px Inter';
+  ctx.textAlign = 'left';
+  ctx.fillText(LANDSCAPE_MARKERS.global.label, gmX + 12, gmY + 4);
+
+  // Mark a real interior local minimum that can trap gradient descent.
+  const lmX = pad.l + pw * LANDSCAPE_MARKERS.local.g / Math.PI;
+  const lmY = pad.t + ph * LANDSCAPE_MARKERS.local.b / Math.PI;
+  ctx.beginPath();
+  ctx.arc(lmX, lmY, 8, 0, Math.PI * 2);
+  ctx.strokeStyle = LANDSCAPE_MARKERS.local.color;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.fillStyle = LANDSCAPE_MARKERS.local.color;
+  ctx.textAlign = 'left';
+  ctx.fillText(LANDSCAPE_MARKERS.local.label, lmX + 12, lmY + 4);
+
+  // Store canvas state for animation overlay
+  canvas._baseImage = ctx.getImageData(0, 0, W, H);
+  canvas._dims = {w, h, pad, pw, ph};
+
+  if (landscapePathPoints.length === 0) {
+    setLandscapePath(0.5, 2.2);
+  } else {
+    drawPathOnLandscape(1);
+  }
+}
+
+function generateOptimizerPath(startG, startB) {
+  landscapePathPoints = [];
+  let g = startG, b = startB;
+  const lr = 0.08;
+  const steps = 30;
+
+  for (let i = 0; i < steps; i++) {
+    landscapePathPoints.push({g, b, e: energy(g, b)});
+    // Numerical gradient
+    const dg = (energy(g + 0.01, b) - energy(g - 0.01, b)) / 0.02;
+    const db = (energy(g, b + 0.01) - energy(g, b - 0.01)) / 0.02;
+    g -= lr * dg + (Math.random() - 0.5) * 0.03;
+    b -= lr * db + (Math.random() - 0.5) * 0.03;
+    // Clamp
+    g = Math.max(0.05, Math.min(Math.PI - 0.05, g));
+    b = Math.max(0.05, Math.min(Math.PI - 0.05, b));
+  }
+}
+
+function drawPathOnLandscape(upTo) {
+  const canvas = document.getElementById('landscape-canvas');
+  const ctx = canvas.getContext('2d');
+  const {w, h, pad, pw, ph} = canvas._dims;
+
+  // Restore base
+  ctx.putImageData(canvas._baseImage, 0, 0);
+
+  if (upTo < 1) return;
+
+  const toX = g => pad.l + pw * g / Math.PI;
+  const toY = b => pad.t + ph * b / Math.PI;
+
+  // Draw path line
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < Math.min(upTo, landscapePathPoints.length); i++) {
+    const pt = landscapePathPoints[i];
+    const x = toX(pt.g), y = toY(pt.b);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Draw dots
+  for (let i = 0; i < Math.min(upTo, landscapePathPoints.length); i++) {
+    const pt = landscapePathPoints[i];
+    const x = toX(pt.g), y = toY(pt.b);
+    const isCurrent = i === Math.min(upTo, landscapePathPoints.length) - 1;
+    ctx.beginPath();
+    ctx.arc(x, y, isCurrent ? 6 : 3, 0, Math.PI * 2);
+    if (i === 0) {
+      ctx.fillStyle = '#22c55e';
+    } else if (isCurrent) {
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = '#fff';
+      ctx.shadowBlur = 8;
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // Start label
+  if (landscapePathPoints.length > 0) {
+    const sp = landscapePathPoints[0];
+    ctx.fillStyle = '#22c55e';
+    ctx.font = 'bold 11px Inter';
+    ctx.textAlign = 'left';
+    ctx.fillText('Start', toX(sp.g) + 8, toY(sp.b) - 6);
+  }
+}
+
+function setLandscapePath(startG, startB) {
+  generateOptimizerPath(startG, startB);
+  drawPathOnLandscape(1);
+}
+
+function stopLandscapeAnimation() {
+  if (landscapeInterval !== null) {
+    clearInterval(landscapeInterval);
+    landscapeInterval = null;
+  }
+  landscapeAnimating = false;
+}
+
+function animateLandscapePath() {
+  if (landscapeAnimating) return;
+  landscapeAnimating = true;
+  let step = 0;
+  landscapeInterval = setInterval(() => {
+    step++;
+    drawPathOnLandscape(step);
+    if (step >= landscapePathPoints.length) {
+      clearInterval(landscapeInterval);
+      landscapeInterval = null;
+      landscapeAnimating = false;
+    }
+  }, 100);
+}
+
+function resetLandscape() {
+  stopLandscapeAnimation();
+  drawLandscape();
+  setLandscapePath(0.5, 2.2);
+}
+
+function randomStartLandscape() {
+  stopLandscapeAnimation();
+  drawLandscape();
+  const g = 0.3 + Math.random() * 2.5;
+  const b = 0.3 + Math.random() * 2.5;
+  setLandscapePath(g, b);
+  // Small delay then animate
+  setTimeout(() => animateLandscapePath(), 300);
+}
+
+// ===== INIT =====
+// Render KaTeX inline
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof renderMathInElement === 'function') {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\(', right: '\\)', display: false},
+        {left: '\\[', right: '\\]', display: true}
+      ]
+    });
+  }
+  // Also render inline katex spans
+  document.querySelectorAll('.katex-inline').forEach(el => {
+    if (typeof katex !== 'undefined') {
+      katex.render(el.textContent, el, {throwOnError: false});
+    }
+  });
+});
+</script>
+</body>
+</html>

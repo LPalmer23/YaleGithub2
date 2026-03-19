@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>|Y&gt;Quantum 2026 — Kickoff Presentation</title>
+<style>
+  :root {
+    --accent-red: #E31837;
+    --accent-dark: #B8132D;
+    --platform-blue: #0066CC;
+    --yale-blue: #00356B;
+    --charcoal: #2D2926;
+    --light-gray: #F5F5F5;
+    --white: #FFFFFF;
+    --green: #2D8C3C;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--charcoal);
+    color: var(--white);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── Slide container ── */
+  .slides-wrapper {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── Typography ── */
+  h1 {
+    font-size: 3.2em;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  h2 {
+    font-size: 2.4em;
+    font-weight: 700;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  h3 {
+    font-size: 1.6em;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-size: 1.4em;
+    color: #ccc;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .highlight { color: var(--accent-red); }
+  .blue { color: var(--platform-blue); }
+  .yale { color: var(--yale-blue); }
+  .green { color: var(--green); }
+
+  /* ── Title slide ── */
+  .title-slide {
+    background: linear-gradient(135deg, var(--charcoal) 0%, #1a1817 50%, var(--charcoal) 100%);
+  }
+
+  .title-slide .logo-row {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  .title-slide .logo-badge {
+    padding: 12px 24px;
+    border: 2px solid;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+  }
+
+  .title-slide h1 { font-size: 3.6em; }
+
+  .title-slide .event-info {
+    font-size: 1.3em;
+    color: #aaa;
+    margin-top: 20px;
+  }
+
+  /* ── Content slides ── */
+  .content-slide {
+    background: linear-gradient(180deg, #1a1a1a 0%, var(--charcoal) 100%);
+  }
+
+  .slide-number {
+    position: absolute;
+    top: 24px;
+    left: 32px;
+    font-size: 0.9em;
+    color: var(--accent-red);
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  /* ── Cards grid ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 20px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 28px;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-red);
+  }
+
+  .card h3 { color: var(--accent-red); margin-bottom: 10px; }
+  .card p { color: #bbb; line-height: 1.6; font-size: 1.05em; }
+
+  /* ── Two-column layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    width: 100%;
+    max-width: 1200px;
+    align-items: start;
+  }
+
+  .col { padding: 10px; }
+
+  /* ── VS comparison ── */
+  .vs-table {
+    width: 100%;
+    max-width: 1100px;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+
+  .vs-table th, .vs-table td {
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .vs-table th {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+  }
+
+  .vs-table td:first-child { color: #999; font-weight: 600; }
+  .vs-table .qaoa-col { color: var(--platform-blue); }
+  .vs-table .dqi-col { color: var(--yale-blue); }
+  .vs-table .vs-badge {
+    display: inline-block;
+    background: var(--accent-red);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.8em;
+  }
+
+  /* ── Scaling table ── */
+  .scale-table {
+    width: 100%;
+    max-width: 1000px;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  .scale-table th, .scale-table td {
+    padding: 12px 18px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .scale-table th {
+    color: var(--accent-red);
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .scale-table td { color: #ccc; }
+  .scale-table .highlight-row { background: rgba(227,24,55,0.1); }
+
+  /* ── Pipeline arrow ── */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 24px;
+  }
+
+  .pipeline-step {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+  }
+
+  .pipeline-arrow {
+    font-size: 2em;
+    color: var(--accent-red);
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  .pipeline-step h3 { font-size: 1.1em; color: var(--accent-red); }
+  .pipeline-step p { font-size: 0.95em; color: #bbb; margin-top: 8px; line-height: 1.5; }
+
+  /* ── Bullet list ── */
+  .bullet-list {
+    list-style: none;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .bullet-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 1.15em;
+    color: #ccc;
+    line-height: 1.5;
+  }
+
+  .bullet-list li::before {
+    content: '▸ ';
+    color: var(--accent-red);
+    font-weight: 700;
+  }
+
+  .bullet-list li strong { color: var(--white); }
+
+  /* ── Interactive diagram link ── */
+  .diagram-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 12px 28px;
+    background: var(--accent-red);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1em;
+    transition: background 0.3s;
+  }
+
+  .diagram-link:hover { background: var(--accent-dark); }
+
+  /* ── Formula box ── */
+  .formula-box {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-left: 4px solid var(--accent-red);
+    border-radius: 8px;
+    padding: 24px 32px;
+    font-family: 'Courier New', monospace;
+    font-size: 1.15em;
+    color: #eee;
+    margin: 16px 0;
+    max-width: 1000px;
+    line-height: 1.8;
+  }
+
+  /* ── Navigation ── */
+  .nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    z-index: 1000;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .nav-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .nav-dot.active {
+    background: var(--accent-red);
+    transform: scale(1.3);
+  }
+
+  .nav-dot:hover { background: rgba(255,255,255,0.5); }
+
+  .nav-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: all 0.3s;
+  }
+
+  .nav-btn:hover {
+    border-color: var(--accent-red);
+    background: rgba(227,24,55,0.15);
+  }
+
+  .slide-counter {
+    color: #888;
+    font-size: 0.9em;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  /* ── Key insight box ── */
+  .insight-box {
+    background: rgba(227,24,55,0.1);
+    border: 1px solid var(--accent-red);
+    border-radius: 10px;
+    padding: 20px 28px;
+    margin-top: 20px;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .insight-box strong { color: var(--accent-red); }
+  .insight-box p { color: #ddd; line-height: 1.6; }
+
+  /* ── Animate on slide enter ── */
+  .slide.active .fade-in {
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .fade-in { opacity: 0; transform: translateY(20px); }
+  .delay-1 { animation-delay: 0.1s !important; }
+  .delay-2 { animation-delay: 0.2s !important; }
+  .delay-3 { animation-delay: 0.3s !important; }
+  .delay-4 { animation-delay: 0.4s !important; }
+  .delay-5 { animation-delay: 0.5s !important; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="slides-wrapper">
+
+  <!-- ════════════════ SLIDE 0: TITLE ════════════════ -->
+  <div class="slide title-slide active" data-slide="0">
+    <div class="logo-row fade-in">
+      <span class="logo-badge" style="border-color: var(--accent-red); color: var(--accent-red);">Sponsor</span>
+      <span class="logo-badge" style="border-color: var(--platform-blue); color: var(--platform-blue);">Platform</span>
+      <span class="logo-badge" style="border-color: #ccc; color: #ccc;">Research</span>
+    </div>
+    <h1 class="fade-in delay-1">Quantum Optimization<br><span class="highlight">Showdown</span></h1>
+    <p class="subtitle fade-in delay-2">DQI vs QAOA on Trapped-Ion Hardware</p>
+    <p class="subtitle fade-in delay-3" style="font-size: 1.1em; color: #888;">
+      |Y&gt;Quantum 2026 &mdash; Yale University &mdash; April 4&ndash;5
+    </p>
+  </div>
+
+  <!-- ════════════════ SLIDE 1: THE CHALLENGE ════════════════ -->
+  <div class="slide content-slide" data-slide="1">
+    <span class="slide-number">01 / THE CHALLENGE</span>
+    <h2 class="fade-in">Two Algorithms. One Quantum Computer.<br>One <span class="highlight">Real Insurance Problem.</span></h2>
+    <p class="subtitle fade-in delay-1">Which quantum approach scales better on P&amp;C insurance product bundling?</p>
+    <div class="cards-grid fade-in delay-2">
+      <div class="card">
+        <h3>QAOA</h3>
+        <p>The <strong>variational</strong> approach: a classical optimizer tunes quantum circuit parameters iteratively. Well-studied but faces barriers at low depth.</p>
+      </div>
+      <div class="card">
+        <h3>DQI</h3>
+        <p>The <strong>interference</strong> approach: quantum mechanics + coding theory find solutions in one shot. No optimization loop &mdash; just physics.</p>
+      </div>
+      <div class="card">
+        <h3>Your Mission</h3>
+        <p><strong>Benchmark both</strong> on insurance instances from n=10 to n=200. Compare quality, speed, and scaling. Find where one overtakes the other.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SLIDE 2: THE BUSINESS PROBLEM ════════════════ -->
+  <div class="slide content-slide" data-slide="2">
+    <span class="slide-number">02 / THE BUSINESS PROBLEM</span>
+    <h2 class="fade-in">Insurance Product <span class="highlight">Bundling</span></h2>
+    <p class="subtitle fade-in delay-1">Think Netflix for insurance: which coverages go into which plans?</p>
+    <div class="two-col fade-in delay-2">
+      <div class="col">
+        <h3>20 Coverages across 9 Families</h3>
+        <ul class="bullet-list" style="font-size: 0.9em;">
+          <li><strong>auto_base</strong> (mandatory): basic $720 / enhanced $1,180</li>
+          <li><strong>property_base</strong> (mandatory): homeowners $1,450 / condo $580 / renters $220</li>
+          <li><strong>auto_physical</strong>: collision $480 / comprehensive $320</li>
+          <li><strong>auto_medical</strong>: med pay $95 / PIP $210</li>
+          <li><strong>motorist</strong>: uninsured $175 / underinsured $140</li>
+          <li><strong>auto_ancillary</strong>: roadside $75 / rental $55 / gap $310</li>
+          <li><strong>property_addon</strong>: floater $195 / ALE $110</li>
+          <li><strong>liability_extend</strong>: umbrella $380 / excess $470</li>
+          <li><strong>specialty</strong>: flood $950 / earthquake $1,350</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>10 Target Packages</h3>
+        <ul class="bullet-list" style="font-size: 0.9em;">
+          <li><strong>Young Driver Budget</strong> &mdash; 22% discount</li>
+          <li><strong>Young Family Starter</strong> &mdash; 18% discount</li>
+          <li><strong>Suburban Homeowner</strong> &mdash; 15% discount</li>
+          <li><strong>Urban Condo Owner</strong> &mdash; 17% discount</li>
+          <li><strong>Premium Full Coverage</strong> &mdash; 10% discount</li>
+          <li><strong>Senior Value</strong> &mdash; 20% discount</li>
+          <li><strong>High-Risk Area</strong> &mdash; 12% discount</li>
+          <li><strong>Basic Compliance</strong> &mdash; 25% discount</li>
+          <li><strong>Auto-Focused</strong> &mdash; 16% discount</li>
+          <li><strong>Property-Focused</strong> &mdash; 14% discount</li>
+        </ul>
+      </div>
+    </div>
+    <a href="01_insurance_bundling.html" target="_blank" class="diagram-link fade-in delay-3">
+      Open Interactive Diagram &rarr;
+    </a>
+  </div>
+
+  <!-- ════════════════ SLIDE 3: THE TRADEOFF ════════════════ -->
+  <div class="slide content-slide" data-slide="3">
+    <span class="slide-number">03 / THE TRADEOFF</span>
+    <h2 class="fade-in">The <span class="highlight">Bundling Tradeoff</span></h2>
+    <p class="subtitle fade-in delay-1">More discount = more customers, but less revenue per customer</p>
+    <div class="formula-box fade-in delay-2">
+      c<sub>i,m</sub> = price<sub>i</sub> &times; margin<sub>i</sub>
+      &times; <span style="color: var(--accent-red)">(1 &minus; &delta;<sub>m</sub>)</span>
+      &times; <span style="color: var(--platform-blue)">(take_rate<sub>i</sub> &times; &alpha;<sub>i,m</sub> &times; (1 + 1.2&sdot;&delta;<sub>m</sub>))</span><br><br>
+      <span style="color: #888; font-size: 0.85em;">
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="color: var(--accent-red);">&uarr; revenue loss</span>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span style="color: var(--platform-blue);">&uarr; demand gain</span>
+      </span>
+    </div>
+    <div class="insight-box fade-in delay-3">
+      <strong>Worked Example:</strong>
+      <p>auto_liability_basic in "Young Driver Budget": $720 &times; 0.22 &times; 0.78 &times; (0.88 &times; 1.25 &times; 1.264) = <strong>$171.75</strong> contribution margin per customer.</p>
+    </div>
+  </div>
+
+  <!-- ════════════════ SLIDE 4: CONSTRAINTS ════════════════ -->
+  <div class="slide content-slide" data-slide="4">
+    <span class="slide-number">04 / CONSTRAINTS</span>
+    <h2 class="fade-in">Five Constraint Types <span class="highlight">Shape the Landscape</span></h2>
+    <div class="cards-grid fade-in delay-1" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="card">
+        <h3>Mandatory Families</h3>
+        <p>&Sigma; x = 1: Exactly one from auto_base and property_base per package. Choosing basic vs enhanced <strong>changes which optional coverages are available</strong>.</p>
+      </div>
+      <div class="card">
+        <h3>Optional Families</h3>
+        <p>&Sigma; x &le; 1: At most one from each of the 7 optional families.</p>
+      </div>
+      <div class="card">
+        <h3>Capacity: K = 7</h3>
+        <p>No more than 7 coverages per package. Forces the optimizer to pick the most profitable subset.</p>
+      </div>
+      <div class="card">
+        <h3>Incompatible Pairs</h3>
+        <p>3 pairs that can't coexist: gap &harr; floater, ALE &harr; earthquake, excess &harr; flood.</p>
+      </div>
+      <div class="card">
+        <h3>Dependencies</h3>
+        <p>6 rules: flood/earthquake/ALE require homeowners; umbrella/excess require enhanced auto liability; floater requires condo.</p>
+      </div>
+      <div class="card">
+        <h3 style="color: var(--platform-blue);">The Interaction</h3>
+        <p>Mandatory choice <strong>gates</strong> optional access. Pick renters instead of homeowners? No flood, earthquake, or ALE allowed. This is the complexity.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SLIDE 5: ILP TO QUBO ════════════════ -->
+  <div class="slide content-slide" data-slide="5">
+    <span class="slide-number">05 / THE BRIDGE TO QUANTUM</span>
+    <h2 class="fade-in">ILP &rarr; <span class="highlight">QUBO</span> &rarr; Quantum Circuit</h2>
+    <p class="subtitle fade-in delay-1">Constraints move into the objective as penalty terms</p>
+    <div class="pipeline fade-in delay-2">
+      <div class="pipeline-step">
+        <h3>1. The ILP</h3>
+        <p>maximize &Sigma; c &middot; x<br>subject to Ax &le; b</p>
+      </div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step">
+        <h3>2. Add Penalties</h3>
+        <p>minimize &minus;&Sigma;c&middot;x<br>+ &lambda;&Sigma;(Ax &minus; b)&sup2;</p>
+      </div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step">
+        <h3>3. QUBO Matrix Q</h3>
+        <p>minimize x<sup>T</sup>Qx<br>Q encodes objective + penalties</p>
+      </div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step">
+        <h3>4. Quantum!</h3>
+        <p>QAOA: cost Hamiltonian<br>DQI: max-XORSAT</p>
+      </div>
+    </div>
+    <div class="insight-box fade-in delay-3">
+      <strong>Key Insight:</strong>
+      <p>The QUBO is <strong>block-diagonal across packages</strong>. Each package is an independent sub-problem. You never need 200 qubits &mdash; you need 20.</p>
+    </div>
+    <a href="02_ilp_to_qubo.html" target="_blank" class="diagram-link fade-in delay-4">
+      Open Interactive Diagram &rarr;
+    </a>
+  </div>
+
+  <!-- ════════════════ SLIDE 6: QAOA ════════════════ -->
+  <div class="slide content-slide" data-slide="6">
+    <span class="slide-number">06 / QAOA</span>
+    <h2 class="fade-in"><span class="blue">QAOA</span>: The Variational Approach</h2>
+    <p class="subtitle fade-in delay-1">Classical optimizer + quantum circuit in a feedback loop</p>
+    <div class="two-col fade-in delay-2">
+      <div class="col">
+        <h3 style="color: var(--platform-blue);">The Loop</h3>
+        <ul class="bullet-list">
+          <li>Prepare all qubits in superposition (H gates)</li>
+          <li><strong>Cost layer</strong>: Rz for objective + ZZPhase for penalties</li>
+          <li><strong>Mixer layer</strong>: Rx rotations explore new solutions</li>
+          <li>Measure &rarr; compute energy &rarr; optimizer adjusts angles</li>
+          <li>Repeat 100&ndash;1000 times until convergence</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 style="color: var(--platform-blue);">Why This Hardware Fits QAOA</h3>
+        <ul class="bullet-list">
+          <li><strong>ZZPhase is native</strong>: each penalty term = 1 gate</li>
+          <li><strong>All-to-all connectivity</strong>: no SWAP overhead</li>
+          <li><strong>Rz is free</strong>: virtual gate, zero physical cost</li>
+          <li>Start with <strong>p = 1</strong>, try p = 2 if time permits</li>
+        </ul>
+      </div>
+    </div>
+    <a href="03_qaoa_circuit.html" target="_blank" class="diagram-link fade-in delay-3">
+      Open Interactive Diagram &rarr;
+    </a>
+  </div>
+
+  <!-- ════════════════ SLIDE 7: DQI ════════════════ -->
+  <div class="slide content-slide" data-slide="7">
+    <span class="slide-number">07 / DQI</span>
+    <h2 class="fade-in"><span class="yale">DQI</span>: The Interference Approach</h2>
+    <p class="subtitle fade-in delay-1">Error correction in reverse &mdash; one shot, no optimization loop</p>
+    <div class="two-col fade-in delay-2">
+      <div class="col">
+        <h3 style="color: var(--yale-blue);">The Pipeline</h3>
+        <ul class="bullet-list">
+          <li><strong>Dicke state</strong>: equal superposition of k-hot strings</li>
+          <li><strong>Phase encoding</strong>: Rz(c<sub>i</sub>) on each variable qubit</li>
+          <li><strong>Syndrome encoding</strong>: CNOT network from parity matrix B</li>
+          <li><strong>BP1 decoder</strong>: belief propagation as quantum gates</li>
+          <li><strong>Hadamard + Measure</strong>: interfere and read out</li>
+          <li><strong>Post-select</strong>: keep only syndrome = 0 results</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3 style="color: var(--yale-blue);">Key Tradeoffs</h3>
+        <ul class="bullet-list">
+          <li><strong>No optimizer loop</strong>: run once, post-select, done</li>
+          <li><strong>More qubits needed</strong>: n variables + m syndrome qubits</li>
+          <li><strong>Lossy encoding</strong>: mod-2 reduces constraints</li>
+          <li><strong>Post-selection cost</strong>: ~10&ndash;30% of shots kept</li>
+          <li>Based on <strong>LDPC coding theory</strong> (same math as 5G!)</li>
+        </ul>
+      </div>
+    </div>
+    <a href="04_dqi_pipeline.html" target="_blank" class="diagram-link fade-in delay-3">
+      Open Interactive Diagram &rarr;
+    </a>
+  </div>
+
+  <!-- ════════════════ SLIDE 8: HEAD TO HEAD ════════════════ -->
+  <div class="slide content-slide" data-slide="8">
+    <span class="slide-number">08 / HEAD TO HEAD</span>
+    <h2 class="fade-in"><span class="blue">QAOA</span> <span class="highlight">vs</span> <span class="yale">DQI</span></h2>
+    <table class="vs-table fade-in delay-1">
+      <tr>
+        <th style="width: 180px;">Aspect</th>
+        <th class="qaoa-col">QAOA</th>
+        <th style="width: 40px; text-align: center;"></th>
+        <th class="dqi-col">DQI</th>
+      </tr>
+      <tr>
+        <td>Philosophy</td>
+        <td class="qaoa-col">Tune the circuit</td>
+        <td style="text-align:center;"><span class="vs-badge">VS</span></td>
+        <td class="dqi-col">Let interference work</td>
+      </tr>
+      <tr>
+        <td>Parameters</td>
+        <td class="qaoa-col">2p angles to optimize</td>
+        <td style="text-align:center;"><span class="vs-badge">VS</span></td>
+        <td class="dqi-col">Zero tunable parameters</td>
+      </tr>
+      <tr>
+        <td>Circuit evaluations</td>
+        <td class="qaoa-col">100&ndash;1000 iterations</td>
+        <td style="text-align:center;"><span class="vs-badge">VS</span></td>
+        <td class="dqi-col">Single run</td>
+      </tr>
+      <tr>
+        <td>Constraints</td>
+        <td class="qaoa-col">Penalty terms (&lambda;)</td>
+        <td style="text-align:center;"><span class="vs-badge">VS</span></td>
+        <td class="dqi-col">Parity check matrix (mod-2)</td>
+      </tr>
+      <tr>
+        <td>Measurement usage</td>
+        <td class="qaoa-col">Uses all shots</td>
+        <td style="text-align:center;"><span class="vs-badge">VS</span></td>
+        <td class="dqi-col">Discards ~70&ndash;90% (post-select)</td>
+      </tr>
+      <tr>
+        <td>Qubits (per sub-problem)</td>
+        <td class="qaoa-col">N = 5&ndash;20</td>
+        <td style="text-align:center;"><span class="vs-badge">VS</span></td>
+        <td class="dqi-col">N + m &asymp; 2N</td>
+      </tr>
+    </table>
+    <a href="05_comparison.html" target="_blank" class="diagram-link fade-in delay-2">
+      Open Interactive Diagram &rarr;
+    </a>
+  </div>
+
+  <!-- ════════════════ SLIDE 9: SCALING ════════════════ -->
+  <div class="slide content-slide" data-slide="9">
+    <span class="slide-number">09 / SCALING</span>
+    <h2 class="fade-in">Problem <span class="highlight">Scaling</span></h2>
+    <p class="subtitle fade-in delay-1">Benchmark across at least 3 sizes</p>
+    <table class="scale-table fade-in delay-2">
+      <tr>
+        <th>N &times; M</th>
+        <th>Binary Vars (n)</th>
+        <th>Sub-problems</th>
+        <th>Qubits / sub</th>
+        <th>Difficulty</th>
+      </tr>
+      <tr>
+        <td>5 &times; 2</td>
+        <td>10</td>
+        <td>2 blocks of 5</td>
+        <td>5</td>
+        <td style="color: var(--green);">Toy</td>
+      </tr>
+      <tr>
+        <td>7 &times; 3</td>
+        <td>21</td>
+        <td>3 blocks of 7</td>
+        <td>7</td>
+        <td style="color: var(--green);">Easy</td>
+      </tr>
+      <tr>
+        <td>10 &times; 2</td>
+        <td>20</td>
+        <td>2 blocks of 10</td>
+        <td>10</td>
+        <td style="color: #DAA520;">Medium</td>
+      </tr>
+      <tr>
+        <td>10 &times; 5</td>
+        <td>50</td>
+        <td>5 blocks of 10</td>
+        <td>10</td>
+        <td style="color: #DAA520;">Medium</td>
+      </tr>
+      <tr class="highlight-row">
+        <td><strong>20 &times; 10</strong></td>
+        <td><strong>200</strong></td>
+        <td><strong>10 blocks of 20</strong></td>
+        <td><strong>20</strong></td>
+        <td style="color: var(--accent-red);"><strong>Full Challenge</strong></td>
+      </tr>
+    </table>
+    <div class="insight-box fade-in delay-3">
+      <strong>Block-diagonal decomposition:</strong>
+      <p>Even the full n=200 problem decomposes into 10 independent 20-qubit sub-circuits. This fits on a 20-qubit H-series device.</p>
+    </div>
+    <a href="06_scaling.html" target="_blank" class="diagram-link fade-in delay-4">
+      Open Interactive Diagram &rarr;
+    </a>
+  </div>
+
+  <!-- ════════════════ SLIDE 10: HARDWARE ════════════════ -->
+  <div class="slide content-slide" data-slide="10">
+    <span class="slide-number">10 / PLATFORM</span>
+    <h2 class="fade-in"><span class="blue">H-Series</span> Trapped-Ion Hardware</h2>
+    <p class="subtitle fade-in delay-1">All-to-all connectivity. Native ZZPhase. 99.9%+ fidelity.</p>
+    <div class="cards-grid fade-in delay-2" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="card">
+        <h3>Native Gate Set</h3>
+        <p><strong>Rz(&lambda;)</strong> &mdash; virtual, zero cost<br>
+           <strong>PhasedX(&theta;, &phi;)</strong> &mdash; physical 1Q rotation<br>
+           <strong>ZZPhase(&theta;)</strong> &mdash; native 2Q entangling gate<br>
+           <strong>ZZMax</strong> &mdash; maximally entangling (ZZPhase at &pi;/2)</p>
+      </div>
+      <div class="card">
+        <h3>Why It Matters</h3>
+        <p>Each QAOA penalty term = <strong>one ZZPhase gate</strong>. No decomposition needed.<br>
+           All-to-all connectivity = <strong>no SWAP gates</strong>.<br>
+           The hardware is built for this problem.</p>
+      </div>
+      <div class="card">
+        <h3>Quick Start</h3>
+        <p style="font-family: monospace; font-size: 0.9em; line-height: 1.8;">
+          pip install pytket pytket-extension<br>
+          backend = Backend("H1-1",<br>
+          &nbsp;&nbsp;machine_debug=True)<br>
+          compiled = backend.get_compiled_circuit(qc)
+        </p>
+      </div>
+      <div class="card">
+        <h3>Qiskit &rarr; pytket</h3>
+        <p style="font-family: monospace; font-size: 0.9em; line-height: 1.8;">
+          from pytket.extensions.qiskit<br>
+          &nbsp;&nbsp;import qiskit_to_tk<br>
+          tk_circ = qiskit_to_tk(qiskit_circ)<br>
+          compiled = backend.get_compiled_circuit(tk_circ)
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SLIDE 11: DELIVERABLES ════════════════ -->
+  <div class="slide content-slide" data-slide="11">
+    <span class="slide-number">11 / DELIVERABLES</span>
+    <h2 class="fade-in">What You Must <span class="highlight">Deliver</span></h2>
+    <div class="cards-grid fade-in delay-1" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="card">
+        <h3>1. Implement Both</h3>
+        <p>Working QAOA and DQI implementations targeting the native trapped-ion gate set. Test at p=1 and p=2 for QAOA.</p>
+      </div>
+      <div class="card">
+        <h3>2. Benchmark</h3>
+        <p>Quality of solution (vs classical optimal) and time to solution across <strong>at least 3 problem sizes</strong>.</p>
+      </div>
+      <div class="card">
+        <h3>3. Analyze</h3>
+        <p>Scaling plots, resource comparison, constraint handling analysis, and <strong>insights on WHY they differ</strong>.</p>
+      </div>
+    </div>
+    <div style="margin-top: 30px;" class="fade-in delay-2">
+      <h3>Record for each run:</h3>
+      <div class="two-col" style="max-width: 800px; gap: 20px;">
+        <ul class="bullet-list" style="font-size: 0.95em;">
+          <li>Approximation ratio</li>
+          <li>Circuit depth (native gates)</li>
+          <li>Two-qubit gate count</li>
+        </ul>
+        <ul class="bullet-list" style="font-size: 0.95em;">
+          <li>Number of qubits</li>
+          <li>Shot count / evaluations</li>
+          <li>Feasibility rate</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SLIDE 12: JUDGING ════════════════ -->
+  <div class="slide content-slide" data-slide="12">
+    <span class="slide-number">12 / JUDGING</span>
+    <h2 class="fade-in">Evaluation <span class="highlight">Criteria</span></h2>
+    <div class="cards-grid fade-in delay-1" style="grid-template-columns: repeat(5, 1fr);">
+      <div class="card" style="text-align: center;">
+        <h3 style="font-size: 2em;">30%</h3>
+        <p>Quality of Solution</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <h3 style="font-size: 2em;">25%</h3>
+        <p>Time to Solution</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <h3 style="font-size: 2em;">20%</h3>
+        <p>Scaling Analysis</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <h3 style="font-size: 2em;">15%</h3>
+        <p>Implementation</p>
+      </div>
+      <div class="card" style="text-align: center;">
+        <h3 style="font-size: 2em;">10%</h3>
+        <p>Presentation</p>
+      </div>
+    </div>
+    <div class="insight-box fade-in delay-2">
+      <strong>What wins:</strong>
+      <p>Not just running the algorithms, but <strong>insightful analysis of WHY they differ</strong>. Show scaling plots, exploit the block-diagonal structure, and explain the tradeoffs.</p>
+    </div>
+  </div>
+
+  <!-- ════════════════ SLIDE 13: TIPS ════════════════ -->
+  <div class="slide content-slide" data-slide="13">
+    <span class="slide-number">13 / TIPS FOR SUCCESS</span>
+    <h2 class="fade-in">Tips for <span class="highlight">Success</span></h2>
+    <ul class="bullet-list fade-in delay-1" style="max-width: 1000px;">
+      <li><strong>Start small:</strong> Get both algorithms working on n=10 before scaling up</li>
+      <li><strong>Classical baselines first:</strong> Solve with PuLP so you know the optimum</li>
+      <li><strong>Exploit the block structure:</strong> Decompose into M independent sub-circuits</li>
+      <li><strong>ZZPhase is your friend:</strong> Each penalty maps naturally to a native ZZ gate</li>
+      <li><strong>Tune &lambda; carefully:</strong> Start with &lambda; = 3 &times; max(c) and adjust</li>
+      <li><strong>Mandatory choice matters:</strong> Which coverage from auto_base/property_base you pick gates the optional coverages via dependencies</li>
+      <li><strong>Read the starter code:</strong> <code>src/insurance_model.py</code>, the learning guides, and the comparison notebook</li>
+    </ul>
+  </div>
+
+  <!-- ════════════════ SLIDE 14: GO! ════════════════ -->
+  <div class="slide title-slide" data-slide="14">
+    <h1 class="fade-in" style="font-size: 4em;">Let's <span class="highlight">Go.</span></h1>
+    <p class="subtitle fade-in delay-1" style="font-size: 1.5em;">24 hours. Two algorithms. One quantum computer.</p>
+    <div style="margin-top: 40px;" class="fade-in delay-2">
+      <p style="color: #888; font-size: 1.2em;">Questions? Visit the sponsor table or ask a mentor.</p>
+      <p style="color: #666; font-size: 1em; margin-top: 16px;">
+        Interactive diagrams in <code style="color: var(--accent-red);">Challenge_Images/</code> &mdash; open them in your browser!
+      </p>
+      <p style="color: #666; font-size: 1em; margin-top: 10px;">
+        Challenge data:
+        <a href="data/YQH26_data.zip" download style="color: var(--platform-blue); text-decoration: none; font-weight: 700;">
+          Download <code>YQH26_data.zip</code>
+        </a>
+      </p>
+    </div>
+    <div class="logo-row fade-in delay-3" style="margin-top: 40px;">
+      <span class="logo-badge" style="border-color: var(--accent-red); color: var(--accent-red);">Sponsor</span>
+      <span class="logo-badge" style="border-color: var(--platform-blue); color: var(--platform-blue);">Platform</span>
+      <span class="logo-badge" style="border-color: #ccc; color: #ccc;">Research</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Navigation Bar ── -->
+<div class="nav-bar">
+  <button class="nav-btn" onclick="changeSlide(-1)">&larr; Previous</button>
+  <div class="nav-dots" id="navDots"></div>
+  <span class="slide-counter" id="slideCounter">1 / 15</span>
+  <button class="nav-btn" onclick="changeSlide(1)">Next &rarr;</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+
+  // Build nav dots
+  const dotsContainer = document.getElementById('navDots');
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goToSlide(i);
+    dotsContainer.appendChild(dot);
+  });
+
+  function goToSlide(n) {
+    slides[current].classList.remove('active');
+    dotsContainer.children[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides[current].classList.add('active');
+    dotsContainer.children[current].classList.add('active');
+    document.getElementById('slideCounter').textContent = `${current + 1} / ${slides.length}`;
+  }
+
+  function changeSlide(delta) {
+    goToSlide(current + delta);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      changeSlide(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      changeSlide(-1);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      goToSlide(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      goToSlide(slides.length - 1);
+    } else if (e.key >= '1' && e.key <= '9') {
+      goToSlide(parseInt(e.key) - 1);
+    } else if (e.key === '0') {
+      goToSlide(9);
+    } else if (e.key === 'f' || e.key === 'F') {
+      // Toggle fullscreen
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  });
+
+  // Touch/swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) changeSlide(diff > 0 ? 1 : -1);
+  });
+</script>
+
+</body>
+</html>
