@@ -25,7 +25,7 @@ This is a 0-1 Integer Linear Program (ILP) with constraints on coverage families
 
 Teams benchmark DQI vs QAOA on insurance bundling instances of increasing size:
 
-See [challenge.docs](challenge.docx) for the full challenge specification.
+See [challenge.docx](challenge.docx) for the full challenge specification.
 
 
 
