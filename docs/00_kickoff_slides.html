@@ -107,6 +107,35 @@
     font-weight: 600;
   }
 
+  .title-slide .logo-row.brand-logos {
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .title-slide .brand-logo-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 136px;
+    min-height: 62px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.04);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.16);
+  }
+
+  .title-slide .brand-logo-chip img {
+    display: block;
+    width: auto;
+    max-width: 180px;
+  }
+
+  .title-slide .brand-logo-chip.travelers img { height: 38px; }
+  .title-slide .brand-logo-chip.platform img { height: 24px; }
+  .title-slide .brand-logo-chip.research img { height: 28px; }
+
   .title-slide h1 { font-size: 3.6em; }
 
   .title-slide .event-info {
@@ -409,10 +438,16 @@
 
   <!-- ════════════════ SLIDE 0: TITLE ════════════════ -->
   <div class="slide title-slide active" data-slide="0">
-    <div class="logo-row fade-in">
-      <span class="logo-badge" style="border-color: var(--accent-red); color: var(--accent-red);">Sponsor</span>
-      <span class="logo-badge" style="border-color: var(--platform-blue); color: var(--platform-blue);">Platform</span>
-      <span class="logo-badge" style="border-color: #ccc; color: #ccc;">Research</span>
+    <div class="logo-row brand-logos fade-in">
+      <div class="brand-logo-chip travelers">
+        <img src="assets/logos/trv-logo-umbrella-red.svg" alt="Travelers umbrella logo">
+      </div>
+      <div class="brand-logo-chip platform">
+        <img src="assets/logos/quantinuum-logo_horizontal_white.png" alt="Quantinuum logo">
+      </div>
+      <div class="brand-logo-chip research">
+        <img src="assets/logos/LTM_Coral.svg" alt="LTM logo">
+      </div>
     </div>
     <h1 class="fade-in delay-1">Quantum Optimization<br><span class="highlight">Showdown</span></h1>
     <p class="subtitle fade-in delay-2">DQI vs QAOA on Trapped-Ion Hardware</p>
@@ -880,15 +915,21 @@
       </p>
       <p style="color: #666; font-size: 1em; margin-top: 10px;">
         Challenge data:
-        <a href="data/YQH26_data.zip" download style="color: var(--platform-blue); text-decoration: none; font-weight: 700;">
-          Download <code>YQH26_data.zip</code>
+        <a href="data/YQH26_data/" style="color: var(--platform-blue); text-decoration: none; font-weight: 700;">
+          Open <code>YQH26_data/</code>
         </a>
       </p>
     </div>
-    <div class="logo-row fade-in delay-3" style="margin-top: 40px;">
-      <span class="logo-badge" style="border-color: var(--accent-red); color: var(--accent-red);">Sponsor</span>
-      <span class="logo-badge" style="border-color: var(--platform-blue); color: var(--platform-blue);">Platform</span>
-      <span class="logo-badge" style="border-color: #ccc; color: #ccc;">Research</span>
+    <div class="logo-row brand-logos fade-in delay-3" style="margin-top: 40px;">
+      <div class="brand-logo-chip travelers">
+        <img src="assets/logos/trv-logo-umbrella-red.svg" alt="Travelers umbrella logo">
+      </div>
+      <div class="brand-logo-chip platform">
+        <img src="assets/logos/quantinuum-logo_horizontal_white.png" alt="Quantinuum logo">
+      </div>
+      <div class="brand-logo-chip research">
+        <img src="assets/logos/LTM_Coral.svg" alt="LTM logo">
+      </div>
     </div>
   </div>
 

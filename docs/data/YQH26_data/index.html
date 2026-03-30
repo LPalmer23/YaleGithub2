@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YQH26 Data Files</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --panel: #1d1d1d;
+      --text: #f4f4f4;
+      --muted: #b8b8b8;
+      --accent: #0066cc;
+      --border: rgba(255,255,255,0.1);
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #171717 0%, var(--bg) 100%);
+      color: var(--text);
+      padding: 48px 24px;
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      margin: 0 0 12px;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .files {
+      margin-top: 28px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .file {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .file code {
+      color: var(--text);
+      font-size: 0.98rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>YQH26 Challenge Data</h1>
+    <p>These are the canonical CSV files for the challenge instance. Download them individually or use them directly from the site.</p>
+
+    <div class="files">
+      <div class="file"><code>instance_coverages.csv</code><a href="instance_coverages.csv" download>Download</a></div>
+      <div class="file"><code>instance_dependencies.csv</code><a href="instance_dependencies.csv" download>Download</a></div>
+      <div class="file"><code>instance_incompatible_pairs.csv</code><a href="instance_incompatible_pairs.csv" download>Download</a></div>
+      <div class="file"><code>instance_packages.csv</code><a href="instance_packages.csv" download>Download</a></div>
+      <div class="file"><code>instance_parameters.csv</code><a href="instance_parameters.csv" download>Download</a></div>
+      <div class="file"><code>instance_segment_affinity.csv</code><a href="instance_segment_affinity.csv" download>Download</a></div>
+    </div>
+  </div>
+</body>
+</html>

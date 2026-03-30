@@ -1,0 +1,7 @@
+required_coverage_index,required_coverage_name,dependent_coverage_index,dependent_coverage_name
+2,homeowners,15,additional_living_expense
+2,homeowners,18,flood_insurance
+2,homeowners,19,earthquake_insurance
+1,auto_liability_enhanced,16,personal_umbrella
+1,auto_liability_enhanced,17,excess_liability
+3,condo_owners,14,personal_property_floater

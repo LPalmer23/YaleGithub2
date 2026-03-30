@@ -1,0 +1,2 @@
+N,M,n_vars,max_options_per_package_K,n_mandatory_families,n_optional_families,n_incompatible_pairs,n_dependency_rules
+20,10,200,7,2,7,3,6
