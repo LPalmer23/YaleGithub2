@@ -654,7 +654,7 @@
           <li><strong>Dicke state</strong>: equal superposition of k-hot strings</li>
           <li><strong>Phase encoding</strong>: Rz(c<sub>i</sub>) on each variable qubit</li>
           <li><strong>Syndrome encoding</strong>: CNOT network from parity matrix B</li>
-          <li><strong>BP1 decoder</strong>: belief propagation as quantum gates</li>
+          <li><strong>Decoder stage</strong>: optional BP1-style decoding for feasibility steering</li>
           <li><strong>Hadamard + Measure</strong>: interfere and read out</li>
           <li><strong>Post-select</strong>: keep only syndrome = 0 results</li>
         </ul>
@@ -793,15 +793,14 @@
   <!-- ════════════════ SLIDE 10: HARDWARE ════════════════ -->
   <div class="slide content-slide" data-slide="10">
     <span class="slide-number">10 / PLATFORM</span>
-    <h2 class="fade-in"><span class="blue">H-Series</span> Trapped-Ion Hardware</h2>
-    <p class="subtitle fade-in delay-1">20 fully connected qubits on H1. Native ZZPhase. Two-qubit fidelities reported in the three-9s regime.</p>
+    <h2 class="fade-in"><span class="blue">Quantinuum Helios</span> + Guppy + Selene</h2>
+    <p class="subtitle fade-in delay-1">Quantinuum trapped-ion systems via Guppy, with Selene emulator support for development and testing.</p>
     <div class="cards-grid fade-in delay-2" style="grid-template-columns: repeat(2, 1fr);">
       <div class="card">
-        <h3>Native Gate Set</h3>
-        <p><strong>Rz(&lambda;)</strong> &mdash; virtual, zero cost<br>
-           <strong>PhasedX(&theta;, &phi;)</strong> &mdash; physical 1Q rotation<br>
-           <strong>ZZPhase(&theta;)</strong> &mdash; native 2Q entangling gate<br>
-           <strong>ZZMax</strong> &mdash; maximally entangling (ZZPhase at &pi;/2)</p>
+        <h3>Current Platform</h3>
+        <p><strong>Helios</strong> is the hardware family referenced by the updated challenge brief.<br>
+           Teams are expected to work through <strong>Guppy</strong> and the <strong>Selene emulator</strong> during the hackathon.<br>
+           Follow the current platform instructions from the challenge doc, not older `pytket` examples.</p>
       </div>
       <div class="card">
         <h3>Why It Matters</h3>
@@ -812,19 +811,19 @@
       <div class="card">
         <h3>Quick Start</h3>
         <p style="font-family: monospace; font-size: 0.9em; line-height: 1.8;">
-          pip install pytket pytket-extension<br>
-          backend = Backend("H1-1",<br>
-          &nbsp;&nbsp;machine_debug=True)<br>
-          compiled = backend.get_compiled_circuit(qc)
+          pip install guppylang<br>
+          python -c "import guppylang"<br>
+          # Use Selene through guppylang.emulator<br>
+          # Follow hackathon setup instructions
         </p>
       </div>
       <div class="card">
-        <h3>Qiskit &rarr; pytket</h3>
+        <h3>Docs To Use</h3>
         <p style="font-family: monospace; font-size: 0.9em; line-height: 1.8;">
-          from pytket.extensions.qiskit<br>
-          &nbsp;&nbsp;import qiskit_to_tk<br>
-          tk_circ = qiskit_to_tk(qiskit_circ)<br>
-          compiled = backend.get_compiled_circuit(tk_circ)
+          docs.quantinuum.com/<br>
+          &nbsp;&nbsp;guppy/getting_started.html<br>
+          docs.quantinuum.com/<br>
+          &nbsp;&nbsp;systems/.../helios.html
         </p>
       </div>
     </div>
@@ -837,11 +836,11 @@
     <div class="cards-grid fade-in delay-1" style="grid-template-columns: repeat(3, 1fr);">
       <div class="card">
         <h3>1. Implement Both</h3>
-        <p>Working QAOA and DQI implementations targeting the native trapped-ion gate set. Test at p=1 and p=2 for QAOA.</p>
+        <p>Working QAOA and DQI implementations aligned to the current Quantinuum stack. Test QAOA at p=1 and p=2 at minimum.</p>
       </div>
       <div class="card">
         <h3>2. Benchmark</h3>
-        <p>Quality of solution (vs classical optimal) and time to solution across <strong>at least 3 problem sizes</strong>.</p>
+        <p>Quality of solution and <strong>time-to-solution proxy metrics</strong> across <strong>at least 3 problem sizes</strong>.</p>
       </div>
       <div class="card">
         <h3>3. Analyze</h3>
@@ -858,7 +857,7 @@
         </ul>
         <ul class="bullet-list" style="font-size: 0.95em;">
           <li>Number of qubits</li>
-          <li>Shot count / evaluations</li>
+          <li>Shot count / evaluations / proxy runtime data</li>
           <li>Feasibility rate</li>
         </ul>
       </div>

@@ -794,7 +794,7 @@
 
       <div class="key-insight" style="margin-bottom:20px; padding:18px 22px;">
         <h3>How To Read This Circuit</h3>
-        <p>The diagram is <strong>symbolic</strong>: it shows how the QUBO terms map into quantum operations. Single-variable terms become one-qubit phase rotations; pairwise terms become ZZ couplings. The hardware API writes <code>ZZPhase</code> in half-turn units, so code-level angles will not look identical to textbook radians.</p>
+        <p>The diagram is <strong>symbolic</strong>: it shows how the QUBO terms map into quantum operations. Single-variable terms become one-qubit phase rotations; pairwise terms become ZZ couplings. Treat the exact API parameterization as platform-specific and follow the current Quantinuum tooling docs used at the hackathon.</p>
       </div>
 
       <div class="circuit-svg-wrap" id="circuit-svg-wrap">
@@ -836,7 +836,7 @@
           </table>
           <p><strong>Rz gates</strong> encode each coverage's profit contribution. The rotation angle is proportional to the coverage's objective coefficient <code>c_i</code>.</p>
           <p><strong>ZZPhase gates</strong> encode constraint penalties between coverage pairs. The rotation angle depends on the penalty weight <code>w_ij</code> and penalty strength <code>lambda</code>.</p>
-          <p><strong>Notation note:</strong> In <code>pytket</code>, <code>ZZPhase(alpha)</code> implements <code>exp(-i * pi * alpha / 2 * Z⊗Z)</code>, so the API parameter <code>alpha</code> is written in half-turns rather than in raw radians.</p>
+          <p><strong>Notation note:</strong> The mathematical object is still a ZZ interaction, but the exact gate-call syntax depends on the current Quantinuum software stack. Use the challenge's live platform documentation for the precise API.</p>
           <div class="highlight">
             ZZPhase is a native two-qubit gate here, so this style of cost layer maps especially naturally to the trapped-ion gate set.
           </div>

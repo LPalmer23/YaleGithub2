@@ -1161,7 +1161,7 @@
         </div>
         <div class="circ-sec" data-sec="3" onclick="showCircSec(3)">
           <div class="sec-num">Step 4</div>
-          <div class="sec-title">BP1 Decoder</div>
+          <div class="sec-title">Optional Decoder</div>
         </div>
         <div class="circ-sec" data-sec="4" onclick="showCircSec(4)">
           <div class="sec-num">Step 5</div>
@@ -1429,7 +1429,7 @@
       <p style="font-size:.92rem;margin-bottom:16px">
         DQI borrows its mathematical machinery directly from classical error correction.
         The parity check matrix <strong>B</strong> plays the same role as in LDPC codes, and the
-        <strong>BP1 decoder</strong> is literally one round of belief propagation -- the same algorithm
+        <strong>BP1-style decoding</strong> is literally one round of belief propagation -- the same algorithm
         used to decode 5G and Wi-Fi error-correcting codes.
       </p>
 
@@ -1456,7 +1456,7 @@
             <li><span class="step-icon">1</span> Encode ILP as parity checks (B, v)</li>
             <li><span class="step-icon">2</span> Quantum interference explores solutions</li>
             <li><span class="step-icon">3</span> Syndrome = B<sup>T</sup> &middot; y mod 2</li>
-            <li><span class="step-icon">4</span> BP1 decoder steers toward feasibility</li>
+            <li><span class="step-icon">4</span> Optional decoder steers toward feasibility</li>
             <li><span class="step-icon">5</span> Post-select on syndrome = 0 &rarr; solution!</li>
           </ul>
         </div>
@@ -1521,7 +1521,7 @@ function drawCircuit() {
     {name:'Dicke', start:0, end:0.18, color:'#0066CC20'},
     {name:'Phase', start:0.18, end:0.34, color:'#00356B18'},
     {name:'Syndrome', start:0.34, end:0.56, color:'#E3183712'},
-    {name:'BP1', start:0.56, end:0.74, color:'#7C3AED12'},
+    {name:'Decoder', start:0.56, end:0.74, color:'#7C3AED12'},
     {name:'H+Meas', start:0.74, end:1.0, color:'#1B9E4B15'},
   ];
 
@@ -1652,7 +1652,7 @@ function drawCircuit() {
     }
   }
 
-  // ── Section 4: BP1 decoder (reverse CNOTs) ──
+  // ── Section 4: optional decoder stage ──
   const bp1X = xLeft + 0.60 * wireLen;
   const bp1Spacing = 0.025 * wireLen;
   let bp1Idx = 0;
@@ -1681,7 +1681,7 @@ function drawCircuit() {
   ctx.fillStyle = '#7C3AED';
   ctx.font = '600 8px "Segoe UI", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('BP1', bp1X + 2.5 * bp1Spacing, yStart + totalQ * yGap + 6);
+  ctx.fillText('DEC', bp1X + 2.5 * bp1Spacing, yStart + totalQ * yGap + 6);
 
   // ── Section 5: Hadamard + Measure ──
   const hX = xLeft + 0.78 * wireLen;
@@ -1715,7 +1715,7 @@ function drawCircuit() {
   // section labels at top
   ctx.font = '600 8px "Segoe UI", sans-serif';
   ctx.textAlign = 'center';
-  const secLabels = ['Dicke State','Phase Rz(c_i)','Syndrome B^T y','BP1 Decode','H + Measure'];
+  const secLabels = ['Dicke State','Phase Rz(c_i)','Syndrome B^T y','Decoder','H + Measure'];
   secs.forEach((s,i) => {
     const xMid = xLeft + (s.start + s.end) / 2 * wireLen;
     ctx.fillStyle = highlightSection === i ? C.yale : C.g500;
@@ -1774,11 +1774,11 @@ const secDetails = [
     <div class="analogy">Same as computing the syndrome in error correction: multiply the received word by the parity-check matrix to detect errors (constraint violations).</div>`
   },
   {
-    title: 'Step 4: BP1 Decoder (Belief Propagation Round 1)',
+    title: 'Step 4: Optional Decoder Stage',
     html: `<p>Classical decoding logic implemented as quantum gates. CNOTs go <strong>backward</strong> from syndrome qubits to variable qubits.</p>
     <p>The decoder checks each variable: if <em>all</em> of its connected syndrome bits indicate a violation,
     flip that variable (apply X). This is exactly one round of hard-decision belief propagation.</p>
-    <p style="margin:8px 0"><strong>Why just 1 round?</strong> For small problems, BP1 already corrects most "errors" (wrong variable assignments).
+    <p style="margin:8px 0"><strong>Why keep this optional?</strong> The updated challenge brief still allows teams to test with and without BP1 decoding, so this stage should be understood as optional rather than mandatory.
     More rounds help for larger, sparser parity-check matrices.</p>
     <div class="analogy">This is literally the same BP algorithm used to decode LDPC codes in 5G and Wi-Fi. Here it steers the quantum state toward feasible ILP solutions.</div>`
   },
