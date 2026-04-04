@@ -48,6 +48,20 @@
     transition: opacity 0.5s ease;
   }
 
+  .slide::after {
+    content: "Proprietary and Confidential. Do not Distribute.";
+    position: absolute;
+    right: 32px;
+    bottom: 72px;
+    font-size: 0.72em;
+    color: rgba(255,255,255,0.74);
+    letter-spacing: 0.3px;
+    text-align: right;
+    z-index: 1100;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+    pointer-events: none;
+  }
+
   .slide.active {
     opacity: 1;
     pointer-events: auto;
@@ -485,7 +499,7 @@
   <div class="slide content-slide" data-slide="2">
     <span class="slide-number">02 / THE BUSINESS PROBLEM</span>
     <h2 class="fade-in">Insurance Product <span class="highlight">Bundling</span></h2>
-    <p class="subtitle fade-in delay-1">Think Netflix for insurance: which coverages go into which plans?</p>
+    <p class="subtitle fade-in delay-1">Think a streaming platform for insurance: which coverages go into which plans?</p>
     <div class="two-col fade-in delay-2">
       <div class="col">
         <h3>20 Coverages across 9 Families</h3>
@@ -540,7 +554,7 @@
     </div>
     <div class="insight-box fade-in delay-3">
       <strong>Worked Example:</strong>
-      <p>auto_liability_basic in "Young Driver Budget": $720 &times; 0.22 &times; 0.78 &times; (0.88 &times; 1.25 &times; 1.264) = <strong>$171.75</strong> contribution margin per customer.</p>
+      <p>auto_base (basic) in "Young Driver Budget": $720 &times; 0.22 &times; 0.78 &times; (0.88 &times; 1.25 &times; 1.264) = <strong>$171.75</strong> contribution margin per customer.</p>
     </div>
   </div>
 
@@ -724,7 +738,7 @@
       </tr>
     </table>
     <div class="insight-box fade-in delay-2">
-      <strong>Teaching note:</strong>
+      <strong>Note:</strong>
       <p>Read this table as a comparison of workflows, not a proof that one algorithm is universally better. QAOA is the more mature variational method; DQI is a newer decoder-based approach that can behave very differently depending on the encoding and noise model.</p>
     </div>
     <a href="05_comparison.html" target="_blank" class="diagram-link fade-in delay-2">
