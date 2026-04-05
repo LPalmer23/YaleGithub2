@@ -118,10 +118,126 @@
     @media (min-width: 800px) { .charts { grid-template-columns: 1fr 1fr; } }
     .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; min-height: 280px; }
     .chart-box h4 { margin: 0 0 0.75rem; font-size: 0.9rem; }
+    .chart-box .chart-sub { font-size: 0.78rem; color: var(--muted); margin: -0.35rem 0 0.65rem; line-height: 1.4; }
+    .chart-box.chart-wide { grid-column: 1 / -1; }
     .plots { display: grid; gap: 1rem; margin-top: 1rem; }
     .plots img { width: 100%; border-radius: 8px; border: 1px solid var(--border); }
     .err { color: #9b1c1c; font-size: 0.9rem; margin-top: 0.5rem; }
     .loading { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; }
+
+    /* --- AI assistant widget (appended) --- */
+    .ai-widget-root {
+      position: fixed;
+      bottom: 1.15rem;
+      right: 1.15rem;
+      z-index: 9999;
+      font-family: inherit;
+      pointer-events: auto;
+    }
+    .ai-fab {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.15rem;
+      border-radius: 999px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(13, 92, 122, 0.35);
+      transition: filter 0.15s, transform 0.1s;
+    }
+    .ai-fab:hover { filter: brightness(1.06); }
+    .ai-fab:active { transform: scale(0.98); }
+    .ai-panel {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 0.65rem);
+      right: 0;
+      width: min(380px, calc(100vw - 2.4rem));
+      max-height: min(70vh, 520px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .ai-panel.ai-panel-open { display: flex; }
+    .ai-panel-header {
+      padding: 0.75rem 1rem;
+      background: linear-gradient(120deg, #eef6fa, #f7f5f0);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .ai-panel-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.85rem 1rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #2c3545;
+      min-height: 140px;
+      max-height: 320px;
+    }
+    .ai-msg-hint {
+      color: var(--muted);
+      font-style: italic;
+      margin: 0 0 0.75rem;
+    }
+    .ai-msg {
+      margin: 0 0 0.65rem;
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      background: #f4f7fa;
+      border: 1px solid var(--border);
+    }
+    .ai-msg.ai-msg-user {
+      background: #e8f4f8;
+      border-color: #c5dae3;
+      margin-left: 1rem;
+    }
+    .ai-msg.ai-msg-thinking { color: var(--muted); font-style: italic; }
+    .ai-panel-foot {
+      padding: 0.65rem 0.85rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background: #fafafa;
+    }
+    .ai-suggestions { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .ai-chip {
+      font-size: 0.72rem;
+      padding: 0.28rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--accent);
+      cursor: pointer;
+    }
+    .ai-chip:hover { background: #eef6fa; }
+    .ai-input-row { display: flex; gap: 0.4rem; }
+    .ai-input-row input {
+      flex: 1;
+      padding: 0.5rem 0.55rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .ai-send {
+      padding: 0.5rem 0.85rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .ai-send:disabled { opacity: 0.55; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -159,6 +275,50 @@
       <p class="err" id="error" style="display:none;"></p>
     </div>
 
+    <div class="panel">
+      <h2>Performance across problem sizes</h2>
+      <p style="margin: 0 0 1rem; color: var(--muted); font-size: 0.92rem; max-width: 62ch;">
+        Compare classical, QAOA, and DQI as you grow the number of coverages (packages held fixed).
+        Uses the same segment as in Scenario above. Runs with lighter shots and fewer QAOA iterations
+        than the single-run dashboard so the sweep finishes in reasonable time.
+      </p>
+      <div class="controls">
+        <div>
+          <label for="sweepCovMin">Sweep — min coverages</label>
+          <input type="number" id="sweepCovMin" min="3" max="20" value="3" />
+        </div>
+        <div>
+          <label for="sweepCovMax">Sweep — max coverages</label>
+          <input type="number" id="sweepCovMax" min="3" max="20" value="7" />
+        </div>
+        <div>
+          <label for="sweepNPkg">Packages (fixed)</label>
+          <input type="number" id="sweepNPkg" min="1" max="10" value="2" />
+        </div>
+        <div>
+          <label for="sweepSeed">Seed (optional)</label>
+          <input type="number" id="sweepSeed" value="42" />
+        </div>
+        <button type="button" class="primary" id="sweepBtn">Run size sweep</button>
+      </div>
+      <p class="loading" id="sweepStatus" style="display:none;">Running benchmarks across problem sizes…</p>
+      <p class="err" id="sweepError" style="display:none;"></p>
+      <div id="sweepChartsWrap" style="display:none; margin-top: 1.25rem;">
+        <div class="charts">
+          <div class="chart-box chart-wide">
+            <h4>Objective quality vs problem size</h4>
+            <p class="chart-sub">Contribution margin ($) at each total variable count (coverages × packages). Classical is the ILP optimum; quantum curves are best sampled feasible objectives.</p>
+            <canvas id="chartSweepObj"></canvas>
+          </div>
+          <div class="chart-box chart-wide">
+            <h4>Reliability vs problem size</h4>
+            <p class="chart-sub">Share of shots that pass underwriting-style gatekeeping: QAOA ILP-feasible samples vs DQI decoder post-selection pattern.</p>
+            <canvas id="chartSweepRel"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="results" style="display:none;">
       <div class="interpret" id="interpret"></div>
 
@@ -193,6 +353,11 @@
           <h4>Top QAOA feasible bundles</h4>
           <canvas id="chartTop"></canvas>
         </div>
+        <div class="chart-box chart-wide">
+          <h4>QAOA convergence vs DQI best feasible</h4>
+          <p class="chart-sub">QAOA trace shows ⟨H⟩ expectation in contribution-margin units per optimizer step (negated from the internal minimizer trace). Dashed line: DQI best ILP-feasible margin.</p>
+          <canvas id="chartConv"></canvas>
+        </div>
       </div>
 
       <h2 style="font-size:1rem; margin: 1.75rem 0 0.75rem; color: var(--accent);">Server-rendered plots</h2>
@@ -203,9 +368,43 @@
     </div>
   </div>
 
+  <div class="ai-widget-root" aria-live="polite">
+    <button type="button" class="ai-fab" id="aiFab" aria-expanded="false" aria-controls="aiPanel">
+      Ask AI
+    </button>
+    <div class="ai-panel" id="aiPanel" role="dialog" aria-label="AI assistant chat">
+      <div class="ai-panel-header">AI Assistant</div>
+      <div class="ai-panel-messages" id="aiMessages">
+        <p class="ai-msg-hint" id="aiHint">
+          Ask me what this demo shows or how QAOA vs DQI works.
+        </p>
+      </div>
+      <div class="ai-panel-foot">
+        <div class="ai-suggestions">
+          <button type="button" class="ai-chip" data-ai-suggest="Explain what the optimization results on this page mean.">
+            Explain results
+          </button>
+          <button type="button" class="ai-chip" data-ai-suggest="Why might QAOA struggle with feasible insurance bundles compared to classical ILP?">
+            Why does QAOA struggle?
+          </button>
+          <button type="button" class="ai-chip" data-ai-suggest="What is DQI in this demo and how does it differ from QAOA?">
+            What is DQI?
+          </button>
+        </div>
+        <div class="ai-input-row">
+          <input type="text" id="aiInput" placeholder="Type a question…" autocomplete="off" />
+          <button type="button" class="ai-send" id="aiSend">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let chartObjInst = null;
     let chartTopInst = null;
+    let chartConvInst = null;
+    let chartSweepObjInst = null;
+    let chartSweepRelInst = null;
 
     async function loadConfig() {
       const r = await fetch("/api/config");
@@ -223,10 +422,194 @@
       document.getElementById("nPkg").max = cfg.max_packages;
       document.getElementById("nCov").value = cfg.defaults.n_coverages;
       document.getElementById("nPkg").value = cfg.defaults.n_packages;
+      document.getElementById("sweepCovMin").max = cfg.max_coverages;
+      document.getElementById("sweepCovMax").max = cfg.max_coverages;
+      document.getElementById("sweepNPkg").max = cfg.max_packages;
     }
 
     function fmtMoney(x) {
       return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(x);
+    }
+
+    function axisPadding(minV, maxV, fracLow, fracHigh, floorMin) {
+      const span = maxV > minV ? maxV - minV : Math.max(Math.abs(maxV), 1) * 0.02;
+      let yLo = minV - fracLow * span;
+      const yHi = maxV + fracHigh * span;
+      if (floorMin !== undefined) yLo = Math.max(floorMin, yLo);
+      return { yLo, yHi };
+    }
+
+    function renderSweepCharts(S) {
+      const labels = S.x_labels;
+      const lineCommon = { tension: 0.2, borderWidth: 2, pointRadius: 4, pointHoverRadius: 6 };
+
+      const objSeries = [
+        S.classical_objective,
+        S.qaoa_objective,
+        S.dqi_objective,
+      ].flat();
+      const objBounds = axisPadding(Math.min(...objSeries), Math.max(...objSeries), 0.08, 0.05, 0);
+
+      const ctxO = document.getElementById("chartSweepObj");
+      if (chartSweepObjInst) chartSweepObjInst.destroy();
+      chartSweepObjInst = new Chart(ctxO, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Classical",
+              data: S.classical_objective,
+              ...lineCommon,
+              borderColor: "#2e7d32",
+              backgroundColor: "rgba(46, 125, 50, 0.08)",
+            },
+            {
+              label: "QAOA",
+              data: S.qaoa_objective,
+              ...lineCommon,
+              borderColor: "#1565c0",
+              backgroundColor: "rgba(21, 101, 192, 0.06)",
+            },
+            {
+              label: "DQI",
+              data: S.dqi_objective,
+              ...lineCommon,
+              borderColor: "#6a1b9a",
+              backgroundColor: "rgba(106, 27, 154, 0.06)",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { position: "bottom", labels: { boxWidth: 12, padding: 14 } },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const v = ctx.parsed.y;
+                  return ctx.dataset.label + ": " + fmtMoney(v);
+                },
+              },
+            },
+          },
+          scales: {
+            x: { title: { display: true, text: "Problem size (config)" } },
+            y: {
+              min: objBounds.yLo,
+              max: objBounds.yHi,
+              title: { display: true, text: "Objective ($)" },
+            },
+          },
+        },
+      });
+
+      const ctxR = document.getElementById("chartSweepRel");
+      if (chartSweepRelInst) chartSweepRelInst.destroy();
+      chartSweepRelInst = new Chart(ctxR, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "QAOA feasible-shot rate",
+              data: S.qaoa_feasibility_rate,
+              ...lineCommon,
+              borderColor: "#1565c0",
+              backgroundColor: "rgba(21, 101, 192, 0.06)",
+            },
+            {
+              label: "DQI post-selection rate",
+              data: S.dqi_post_selection_rate,
+              ...lineCommon,
+              borderColor: "#6a1b9a",
+              backgroundColor: "rgba(106, 27, 154, 0.06)",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { position: "bottom", labels: { boxWidth: 12, padding: 14 } },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const v = ctx.parsed.y;
+                  return ctx.dataset.label + ": " + (100 * v).toFixed(1) + "%";
+                },
+              },
+            },
+          },
+          scales: {
+            x: { title: { display: true, text: "Problem size (config)" } },
+            y: {
+              min: 0,
+              max: 1,
+              title: { display: true, text: "Rate" },
+              ticks: {
+                callback(v) {
+                  return (100 * v).toFixed(0) + "%";
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    async function runSweep() {
+      const errEl = document.getElementById("sweepError");
+      const st = document.getElementById("sweepStatus");
+      errEl.style.display = "none";
+      st.style.display = "block";
+      document.getElementById("sweepBtn").disabled = true;
+
+      const covMin = Number(document.getElementById("sweepCovMin").value);
+      const covMax = Number(document.getElementById("sweepCovMax").value);
+      if (covMin > covMax) {
+        errEl.textContent = "Min coverages must be ≤ max coverages.";
+        errEl.style.display = "block";
+        st.style.display = "none";
+        document.getElementById("sweepBtn").disabled = false;
+        return;
+      }
+
+      const body = {
+        package_start: Number(document.getElementById("segment").value),
+        n_packages: Number(document.getElementById("sweepNPkg").value),
+        n_coverages_min: covMin,
+        n_coverages_max: covMax,
+        seed: Number(document.getElementById("sweepSeed").value) || null,
+      };
+
+      try {
+        const r = await fetch("/api/benchmark_sweep", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          let msg = "Sweep failed";
+          if (typeof data.detail === "string") msg = data.detail;
+          else if (Array.isArray(data.detail)) msg = data.detail.map((d) => d.msg || d).join("; ");
+          else if (data.detail) msg = JSON.stringify(data.detail);
+          throw new Error(msg);
+        }
+        if (!data.sweep || !data.sweep.x_labels || data.sweep.x_labels.length === 0) {
+          throw new Error("Sweep returned no data points.");
+        }
+        document.getElementById("sweepChartsWrap").style.display = "block";
+        renderSweepCharts(data.sweep);
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = "block";
+      } finally {
+        st.style.display = "none";
+        document.getElementById("sweepBtn").disabled = false;
+      }
     }
 
     async function runOpt() {
@@ -306,6 +689,120 @@
           },
         });
 
+        const rawConv = (data.qaoa_convergence || []).map(Number);
+        const dqiRef = Number(
+          data.dqi_best_objective !== undefined ? data.dqi_best_objective : data.dqi_objective,
+        );
+        const ctxConv = document.getElementById("chartConv");
+        if (chartConvInst) chartConvInst.destroy();
+        if (rawConv.length === 0) {
+          chartConvInst = new Chart(ctxConv, {
+            type: "line",
+            data: {
+              labels: ["0", "1"],
+              datasets: [
+                {
+                  label: "DQI best feasible",
+                  data: [dqiRef, dqiRef],
+                  borderColor: "#6a1b9a",
+                  borderDash: [7, 5],
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  fill: false,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: true, position: "bottom", labels: { boxWidth: 14, padding: 16 } },
+                title: {
+                  display: true,
+                  text: "No QAOA optimizer steps in response — DQI reference only.",
+                  color: "var(--muted)",
+                  font: { size: 12, weight: "500" },
+                },
+                tooltip: {
+                  callbacks: {
+                    label(ctx) {
+                      return ctx.dataset.label + ": " + fmtMoney(ctx.parsed.y);
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: { title: { display: true, text: "Optimizer step" } },
+                y: { title: { display: true, text: "Objective value ($)" } },
+              },
+            },
+          });
+        } else {
+          const qaoaObjectiveTrace = rawConv.map((v) => -v);
+          const dqiLine = rawConv.map(() => dqiRef);
+          const stepLabels = rawConv.map((_, i) => String(i));
+          const allY = qaoaObjectiveTrace.concat(dqiLine);
+          const minC = Math.min(...allY);
+          const maxC = Math.max(...allY);
+          const spanC = maxC > minC ? maxC - minC : Math.max(Math.abs(maxC), 1) * 0.02;
+          const yMinC = minC - 0.1 * spanC;
+          const yMaxC = maxC + 0.05 * spanC;
+          chartConvInst = new Chart(ctxConv, {
+            type: "line",
+            data: {
+              labels: stepLabels,
+              datasets: [
+                {
+                  label: "QAOA convergence",
+                  data: qaoaObjectiveTrace,
+                  borderColor: "#1565c0",
+                  backgroundColor: "rgba(21, 101, 192, 0.06)",
+                  borderWidth: 2,
+                  tension: 0.2,
+                  pointRadius: 0,
+                  fill: false,
+                },
+                {
+                  label: "DQI best feasible",
+                  data: dqiLine,
+                  borderColor: "#6a1b9a",
+                  borderDash: [7, 5],
+                  borderWidth: 2,
+                  pointRadius: 0,
+                  fill: false,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "bottom",
+                  labels: { boxWidth: 14, padding: 16, font: { size: 11 } },
+                },
+                tooltip: {
+                  callbacks: {
+                    label(ctx) {
+                      const v = ctx.parsed.y;
+                      if (v == null || Number.isNaN(v)) return ctx.dataset.label + ": —";
+                      return ctx.dataset.label + ": " + fmtMoney(v);
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: { title: { display: true, text: "Optimizer step" } },
+                y: {
+                  min: yMinC,
+                  max: yMaxC,
+                  title: { display: true, text: "Objective value ($)" },
+                },
+              },
+            },
+          });
+        }
+
         const top = data.chart_top_bundles || [];
         const ctxT = document.getElementById("chartTop");
         if (chartTopInst) chartTopInst.destroy();
@@ -352,10 +849,104 @@
     }
 
     document.getElementById("runBtn").addEventListener("click", runOpt);
+    document.getElementById("sweepBtn").addEventListener("click", runSweep);
     loadConfig().catch((e) => {
       document.getElementById("error").textContent = "Failed to load config: " + e;
       document.getElementById("error").style.display = "block";
     });
   </script>
+
+  <script>
+    (function () {
+      var fab = document.getElementById("aiFab");
+      var panel = document.getElementById("aiPanel");
+      var messagesEl = document.getElementById("aiMessages");
+      var hint = document.getElementById("aiHint");
+      var input = document.getElementById("aiInput");
+      var sendBtn = document.getElementById("aiSend");
+
+      function togglePanel() {
+        var open = panel.classList.toggle("ai-panel-open");
+        fab.setAttribute("aria-expanded", open ? "true" : "false");
+        fab.textContent = open ? "Close" : "Ask AI";
+        if (open) input.focus();
+      }
+
+      fab.addEventListener("click", togglePanel);
+
+      function appendMsg(className, text) {
+        var p = document.createElement("p");
+        p.className = "ai-msg " + className;
+        p.textContent = text;
+        messagesEl.appendChild(p);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function removeThinking() {
+        var t = document.getElementById("aiThinking");
+        if (t) t.remove();
+      }
+
+      function setLoading(on) {
+        sendBtn.disabled = !!on;
+        input.disabled = !!on;
+      }
+
+      async function sendMessage(text) {
+        var trimmed = (text || "").trim();
+        if (!trimmed) return;
+        if (hint && hint.parentNode) hint.remove();
+        appendMsg("ai-msg-user", trimmed);
+        setLoading(true);
+        var thinking = document.createElement("p");
+        thinking.id = "aiThinking";
+        thinking.className = "ai-msg ai-msg-thinking";
+        thinking.textContent = "Thinking...";
+        messagesEl.appendChild(thinking);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        try {
+          var r = await fetch("/api/agent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: trimmed }),
+          });
+          var data = await r.json().catch(function () { return {}; });
+          removeThinking();
+          var reply =
+            typeof data.reply === "string"
+              ? data.reply
+              : (typeof data.detail === "string" ? data.detail : "Could not read assistant response.");
+          appendMsg("", reply);
+        } catch (err) {
+          removeThinking();
+          appendMsg("", "Network error — check that the server is running.");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      sendBtn.addEventListener("click", function () {
+        var v = input.value;
+        input.value = "";
+        sendMessage(v);
+      });
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          var v = input.value;
+          input.value = "";
+          sendMessage(v);
+        }
+      });
+
+      document.querySelectorAll("[data-ai-suggest]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var q = btn.getAttribute("data-ai-suggest") || "";
+          sendMessage(q);
+        });
+      });
+    })();
+  </script>
+
 </body>
 </html>
