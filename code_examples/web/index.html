@@ -274,6 +274,13 @@
         document.getElementById("dConf").textContent = data.dqi_confidence;
 
         const co = data.chart_objectives;
+        const objVals = co.values.map((v) => Number(v));
+        const minValue = Math.min(...objVals);
+        const maxValue = Math.max(...objVals);
+        const span = maxValue > minValue ? maxValue - minValue : Math.max(Math.abs(maxValue), 1) * 0.02;
+        let yMin = minValue - 0.1 * span;
+        const yMax = maxValue + 0.05 * span;
+        yMin = Math.max(0, yMin);
         const ctxO = document.getElementById("chartObj");
         if (chartObjInst) chartObjInst.destroy();
         chartObjInst = new Chart(ctxO, {
@@ -289,7 +296,13 @@
           options: {
             responsive: true,
             plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: false, title: { display: true, text: "Margin ($)" } } },
+            scales: {
+              y: {
+                min: yMin,
+                max: yMax,
+                title: { display: true, text: "Margin ($)" },
+              },
+            },
           },
         });
 
