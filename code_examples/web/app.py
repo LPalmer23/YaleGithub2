@@ -12,6 +12,7 @@ Or:
 
 from __future__ import annotations
 
+import os
 import sys
 from functools import lru_cache
 from pathlib import Path
@@ -22,6 +23,11 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+try:
+    from openai import OpenAI
+except ImportError:  # pragma: no cover
+    OpenAI = None  # type: ignore[misc, assignment]
+
 # code_examples/ on path (parent of web/)
 _CODE_EXAMPLES = Path(__file__).resolve().parent.parent
 if str(_CODE_EXAMPLES) not in sys.path:
@@ -31,6 +37,7 @@ from src.insurance_model import load_ltm_instance, subsample_problem  # noqa: E4
 from src.quantum_benchmark import (  # noqa: E402
     analyze_problem_for_judge_demo,
     resolve_ltm_data_dir,
+    run_benchmark_size_sweep,
 )
 
 WEB_ROOT = Path(__file__).resolve().parent
@@ -60,6 +67,16 @@ class OptimizeBody(BaseModel):
     n_coverages: int = Field(5, ge=3, le=20)
     n_packages: int = Field(2, ge=1, le=10)
     package_start: int = Field(0, ge=0)
+    seed: int | None = 42
+
+
+class BenchmarkSweepBody(BaseModel):
+    """Vary coverage count with fixed packages; keeps total variables within the demo cap."""
+
+    package_start: int = Field(0, ge=0)
+    n_packages: int = Field(2, ge=1, le=10)
+    n_coverages_min: int = Field(3, ge=3, le=20)
+    n_coverages_max: int = Field(7, ge=3, le=20)
     seed: int | None = 42
 
 
@@ -130,6 +147,105 @@ def api_optimize(body: OptimizeBody) -> dict:
         raise HTTPException(
             status_code=500, detail=f"Optimization failed: {e!s}"
         ) from e
+
+
+@app.post("/api/benchmark_sweep")
+def api_benchmark_sweep(body: BenchmarkSweepBody) -> dict:
+    """Benchmark classical, QAOA, and DQI for each coverage count in ``[min, max]`` (inclusive)."""
+    ltm = _cached_ltm()
+    if body.package_start >= ltm.M:
+        raise HTTPException(status_code=400, detail="Segment index out of range.")
+
+    lo, hi = sorted((body.n_coverages_min, body.n_coverages_max))
+    lo = max(3, lo)
+    hi = min(ltm.N, hi)
+    n_pkg = body.n_packages
+    if n_pkg > ltm.M:
+        raise HTTPException(status_code=400, detail="n_packages exceeds model package count.")
+
+    size_points: list[tuple[int, int]] = [(n, n_pkg) for n in range(lo, hi + 1)]
+    size_points = [
+        (n, p) for n, p in size_points if n * p <= DEMO_MAX_VARS
+    ]
+    if not size_points:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "No sweep points fit under the demo variable cap. "
+                "Lower packages or narrow the coverage range."
+            ),
+        )
+
+    try:
+        return run_benchmark_size_sweep(
+            ltm,
+            size_points=size_points,
+            package_start=body.package_start,
+            demo_max_vars=DEMO_MAX_VARS,
+            seed=body.seed,
+            qaoa_p=2,
+            qaoa_maxiter=60,
+            qaoa_shots=2048,
+            dqi_shots=2048,
+            dqi_max_weight=2,
+            dqi_bp1_iterations=1,
+        )
+    except Exception as e:  # pragma: no cover
+        raise HTTPException(
+            status_code=500, detail=f"Benchmark sweep failed: {e!s}"
+        ) from e
+
+
+_AGENT_SYSTEM = (
+    "You are a concise assistant explaining a quantum optimization demo comparing classical, "
+    "QAOA, and DQI methods. Be clear, intuitive, and insightful."
+)
+
+
+@app.post("/api/agent")
+def agent_chat(body: dict) -> dict[str, str]:
+    message = str(body.get("message", "") or "").strip()
+    if not message:
+        return {"reply": "Please enter a question first."}
+
+    if OpenAI is None:
+        return {
+            "reply": (
+                "The assistant needs the `openai` package (`pip install openai`). "
+                "The optimization demo works without it."
+            ),
+        }
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return {
+            "reply": (
+                "AI assistant is not configured. Set the OPENAI_API_KEY environment variable to "
+                "enable answers. Everything else on this page runs normally."
+            ),
+        }
+
+    try:
+        client = OpenAI(api_key=api_key)
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": _AGENT_SYSTEM},
+                {"role": "user", "content": message},
+            ],
+        )
+        choice = completion.choices[0]
+        reply_text = (choice.message.content or "").strip()
+        if not reply_text:
+            reply_text = "(Empty response from model.)"
+        return {"reply": reply_text}
+    except Exception as e:  # pragma: no cover
+        return {
+            "reply": (
+                "Sorry — the assistant could not complete that request right now. "
+                f"Details: {e!s}"
+            ),
+        }
 
 
 @app.get("/")

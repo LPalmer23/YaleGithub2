@@ -33,7 +33,13 @@ from src.bundle_labels import (
     pick_overall_best_method,
 )
 from src.dqi_circuit import DQIResult, run_dqi
-from src.insurance_model import BundlingProblem, build_ilp, get_ilp_matrices, solve_ilp
+from src.insurance_model import (
+    BundlingProblem,
+    build_ilp,
+    get_ilp_matrices,
+    solve_ilp,
+    subsample_problem,
+)
 from src.ilp_to_maxxorsat import MaxXORSATInstance, ilp_to_maxxorsat
 from src.qaoa_circuit import run_qaoa
 
@@ -223,6 +229,93 @@ def run_benchmark_on_problem(
     }
 
     return row, details
+
+
+def run_benchmark_size_sweep(
+    ltm: BundlingProblem,
+    *,
+    size_points: list[tuple[int, int]],
+    package_start: int = 0,
+    demo_max_vars: int = 21,
+    seed: int | None = 42,
+    qaoa_p: int = 2,
+    qaoa_maxiter: int = 60,
+    qaoa_shots: int = 2048,
+    dqi_shots: int = 2048,
+    dqi_max_weight: int = 2,
+    dqi_bp1_iterations: int = 1,
+) -> dict[str, Any]:
+    """Run ``run_benchmark_on_problem`` on several (n_coverages, n_packages) subsamples.
+
+    Chart-ready payload under key ``sweep`` for the judge UI. Skips points whose
+    product exceeds ``demo_max_vars``. Lightweight defaults keep the demo responsive.
+    """
+    x_labels: list[str] = []
+    n_vars_list: list[int] = []
+    n_coverages_list: list[int] = []
+    n_packages_list: list[int] = []
+    classical_objective: list[float] = []
+    qaoa_objective: list[float] = []
+    dqi_objective: list[float] = []
+    qaoa_approx_ratio: list[float] = []
+    dqi_approx_ratio: list[float] = []
+    qaoa_feasibility_rate: list[float] = []
+    dqi_post_selection_rate: list[float] = []
+
+    for n_cov, n_pkg in size_points:
+        n_cov_c = max(3, min(int(n_cov), ltm.N))
+        n_pkg_c = max(1, min(int(n_pkg), ltm.M))
+        if n_cov_c * n_pkg_c > demo_max_vars:
+            continue
+        problem = subsample_problem(
+            ltm, n_cov_c, n_pkg_c, package_start=package_start
+        )
+        row, _ = run_benchmark_on_problem(
+            problem,
+            qaoa_p=qaoa_p,
+            qaoa_maxiter=qaoa_maxiter,
+            qaoa_shots=qaoa_shots,
+            dqi_shots=dqi_shots,
+            dqi_max_weight=dqi_max_weight,
+            dqi_bp1_iterations=dqi_bp1_iterations,
+            seed=seed,
+        )
+        nv = row.n_vars
+        x_labels.append(f"{nv} vars ({n_cov_c}×{n_pkg_c})")
+        n_vars_list.append(nv)
+        n_coverages_list.append(n_cov_c)
+        n_packages_list.append(n_pkg_c)
+        classical_objective.append(float(row.classical_optimal))
+        qaoa_objective.append(float(row.qaoa_best))
+        dqi_objective.append(float(row.dqi_best))
+        qaoa_approx_ratio.append(float(row.qaoa_approx_ratio))
+        dqi_approx_ratio.append(float(row.dqi_approx_ratio))
+        qaoa_feasibility_rate.append(float(row.qaoa_feasibility_rate))
+        dqi_post_selection_rate.append(float(row.dqi_post_selection_rate))
+
+    return {
+        "sweep": {
+            "x_labels": x_labels,
+            "n_vars": n_vars_list,
+            "n_coverages": n_coverages_list,
+            "n_packages": n_packages_list,
+            "classical_objective": classical_objective,
+            "qaoa_objective": qaoa_objective,
+            "dqi_objective": dqi_objective,
+            "qaoa_approx_ratio": qaoa_approx_ratio,
+            "dqi_approx_ratio": dqi_approx_ratio,
+            "qaoa_feasibility_rate": qaoa_feasibility_rate,
+            "dqi_post_selection_rate": dqi_post_selection_rate,
+        },
+        "meta": {
+            "package_start": package_start,
+            "demo_max_vars": demo_max_vars,
+            "seed": seed,
+            "qaoa_maxiter": qaoa_maxiter,
+            "qaoa_shots": qaoa_shots,
+            "dqi_shots": dqi_shots,
+        },
+    }
 
 
 def save_benchmark_json(
@@ -491,6 +584,7 @@ def run_judge_demo(
         ),
         "dqi_bundle": result.dqi_best_bundle_label or None,
         "dqi_objective": result.dqi_best_objective,
+        "dqi_best_objective": result.dqi_best_objective,
         "dqi_post_selection_rate": result.dqi_post_selection_rate,
         "dqi_confidence": (
             f"{result.dqi_post_selection_rate:.1%} of shots showed the decoder success pattern."
@@ -500,6 +594,7 @@ def run_judge_demo(
             "labels": ["Classical optimum", "QAOA best sampled", "DQI best feasible"],
             "values": [row.classical_optimal, row.qaoa_best, row.dqi_best],
         },
+        "qaoa_convergence": [float(x) for x in details["qaoa_convergence"]],
         "chart_top_bundles": chart_top,
         "plot_urls": plot_urls,
         "summary_confidence": result.summary_confidence,

@@ -16,3 +16,4 @@ notebook>=7.0
 # Interactive judge demo: cd code_examples && uvicorn web.app:app --reload
 fastapi>=0.110
 uvicorn[standard]>=0.27
+openai>=1.0
