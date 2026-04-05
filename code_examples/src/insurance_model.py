@@ -513,22 +513,34 @@ def subsample_problem(
     problem: BundlingProblem,
     n_coverages: int,
     n_packages: int,
+    *,
+    package_start: int = 0,
 ) -> BundlingProblem:
-    """Create a smaller BundlingProblem from the first coverages and packages.
+    """Create a smaller BundlingProblem from the first coverages and a package window.
 
-    Slices the coverage list, package_discounts, segment_affinity, and
-    package_names.  Filters dependency_rules and compatibility_rules to
-    only reference coverages that remain in the subsampled set.
+    Slices the coverage list, ``package_discounts``, ``segment_affinity`` columns,
+    and ``package_names`` for indices ``[package_start : package_start + n_packages]``.
+    ``package_start`` is clamped so the window stays within ``0..M-1``.
+
+    Filters dependency_rules and compatibility_rules to only reference coverages that
+    remain in the subsampled set.
 
     Args:
         problem: The full-sized BundlingProblem.
         n_coverages: Number of coverages to keep (first n).
-        n_packages: Number of packages to keep (first n).
+        n_packages: Number of consecutive packages to keep.
+        package_start: Index of the first package in the window (segment choice).
 
     Returns:
         A new BundlingProblem with reduced dimensions.
     """
-    kept_coverages = problem.coverages[:n_coverages]
+    n_cov = min(int(n_coverages), problem.N)
+    n_pkg = min(int(n_packages), problem.M)
+    start = max(0, int(package_start))
+    if start + n_pkg > problem.M:
+        start = max(0, problem.M - n_pkg)
+
+    kept_coverages = problem.coverages[:n_cov]
     kept_names = {cov.name for cov in kept_coverages}
 
     # Filter dependency rules: both ends must be in the kept set
@@ -543,26 +555,27 @@ def subsample_problem(
         if r.coverage_i in kept_names and r.coverage_j in kept_names
     ]
 
+    end = start + n_pkg
     # Slice per-package data
     pkg_discounts = (
-        problem.package_discounts[:n_packages]
+        problem.package_discounts[start:end]
         if problem.package_discounts is not None
         else None
     )
     pkg_names = (
-        problem.package_names[:n_packages]
+        problem.package_names[start:end]
         if problem.package_names is not None
         else None
     )
     affinity = (
-        problem.segment_affinity[:n_coverages, :n_packages]
+        problem.segment_affinity[:n_cov, start:end]
         if problem.segment_affinity is not None
         else None
     )
 
     return BundlingProblem(
         coverages=kept_coverages,
-        num_packages=n_packages,
+        num_packages=n_pkg,
         max_options_per_package=problem.max_options_per_package,
         discount_factor=problem.discount_factor,
         price_elasticity=problem.price_elasticity,

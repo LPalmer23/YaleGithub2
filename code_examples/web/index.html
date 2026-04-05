@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recommended bundles · Quantum comparison</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --ink: #1a2b4a;
+      --muted: #5c6d8c;
+      --paper: #f7f5f0;
+      --card: #fff;
+      --accent: #0d5c7a;
+      --accent2: #b85c14;
+      --ok: #1e6f4a;
+      --border: #e0d9ce;
+      --radius: 12px;
+      --shadow: 0 8px 28px rgba(26, 43, 74, 0.08);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(165deg, #eef3f8 0%, var(--paper) 45%);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+    }
+    header h1 {
+      font-size: 1.65rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.35rem;
+    }
+    header p { margin: 0; color: var(--muted); font-size: 0.95rem; max-width: 52ch; }
+    .panel {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 1.35rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .panel h2 { font-size: 1rem; margin: 0 0 1rem; color: var(--accent); font-weight: 600; }
+    .controls { display: grid; gap: 1rem; }
+    @media (min-width: 640px) {
+      .controls { grid-template-columns: 1fr 1fr; align-items: end; }
+    }
+    label { display: block; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.35rem; }
+    select, input[type="number"] {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      background: #fff;
+      color: var(--ink);
+    }
+    button.primary {
+      grid-column: 1 / -1;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.85rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 0.25rem;
+      transition: filter 0.15s, transform 0.1s;
+    }
+    button.primary:hover { filter: brightness(1.08); }
+    button.primary:active { transform: scale(0.99); }
+    button.primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.45rem;
+      border-radius: 6px;
+      background: #eef6fa;
+      color: var(--accent);
+      font-weight: 600;
+      margin-left: 0.35rem;
+    }
+    .interpret {
+      background: linear-gradient(120deg, #fff9f0, #f5faff);
+      border-left: 4px solid var(--accent2);
+      padding: 1rem 1.15rem;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 0.98rem;
+      line-height: 1.55;
+      color: #2c3545;
+      margin-bottom: 1.5rem;
+    }
+    .cards { display: grid; gap: 1rem; }
+    @media (min-width: 860px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { margin: 0 0 0.5rem; font-size: 0.9rem; color: var(--muted); font-weight: 600; }
+    .card.classical h3 { color: var(--ok); }
+    .card.qaoa h3 { color: #1565c0; }
+    .card.dqi h3 { color: #6a1b9a; }
+    .bundle { font-size: 0.9rem; line-height: 1.45; margin: 0 0 0.75rem; min-height: 3.2rem; }
+    .stat { font-size: 1.35rem; font-weight: 700; margin: 0 0 0.25rem; }
+    .conf { font-size: 0.8rem; color: var(--muted); margin: 0; }
+    .charts { display: grid; gap: 1.5rem; }
+    @media (min-width: 800px) { .charts { grid-template-columns: 1fr 1fr; } }
+    .chart-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; min-height: 280px; }
+    .chart-box h4 { margin: 0 0 0.75rem; font-size: 0.9rem; }
+    .plots { display: grid; gap: 1rem; margin-top: 1rem; }
+    .plots img { width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+    .err { color: #9b1c1c; font-size: 0.9rem; margin-top: 0.5rem; }
+    .loading { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Bundle recommendation judge</h1>
+      <p>
+        Pick a customer-segment window and problem size, then compare classical, QAOA, and DQI
+        recommendations on contribution margin—designed as a quick product-style demo, not a lab notebook.
+      </p>
+    </header>
+
+    <div class="panel">
+      <h2>Scenario</h2>
+      <div class="controls">
+        <div>
+          <label for="segment">Customer segment (start of package window)</label>
+          <select id="segment"></select>
+        </div>
+        <div>
+          <label for="nCov">Number of coverages</label>
+          <input type="number" id="nCov" min="3" max="20" value="5" />
+        </div>
+        <div>
+          <label for="nPkg">Number of packages in window</label>
+          <input type="number" id="nPkg" min="1" max="10" value="2" />
+        </div>
+        <div>
+          <label for="seed">Random seed (optional)</label>
+          <input type="number" id="seed" value="42" />
+        </div>
+        <button type="button" class="primary" id="runBtn">Run optimization</button>
+      </div>
+      <p class="loading" id="status" style="display:none;">Running quantum + classical benchmark…</p>
+      <p class="err" id="error" style="display:none;"></p>
+    </div>
+
+    <div id="results" style="display:none;">
+      <div class="interpret" id="interpret"></div>
+
+      <div class="cards">
+        <div class="card classical">
+          <h3>Classical optimum <span class="badge">Ground truth</span></h3>
+          <p class="bundle" id="cBundle"></p>
+          <p class="stat" id="cObj"></p>
+          <p class="conf" id="cConf"></p>
+        </div>
+        <div class="card qaoa">
+          <h3>QAOA best sampled</h3>
+          <p class="bundle" id="qBundle"></p>
+          <p class="stat" id="qObj"></p>
+          <p class="conf" id="qConf"></p>
+        </div>
+        <div class="card dqi">
+          <h3>DQI best feasible</h3>
+          <p class="bundle" id="dBundle"></p>
+          <p class="stat" id="dObj"></p>
+          <p class="conf" id="dConf"></p>
+        </div>
+      </div>
+
+      <h2 style="font-size:1rem; margin: 1.75rem 0 0.75rem; color: var(--accent);">Charts</h2>
+      <div class="charts">
+        <div class="chart-box">
+          <h4>Objective comparison</h4>
+          <canvas id="chartObj"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4>Top QAOA feasible bundles</h4>
+          <canvas id="chartTop"></canvas>
+        </div>
+      </div>
+
+      <h2 style="font-size:1rem; margin: 1.75rem 0 0.75rem; color: var(--accent);">Server-rendered plots</h2>
+      <div class="plots">
+        <div><img id="imgObj" alt="Objective comparison" /></div>
+        <div><img id="imgTop" alt="Top bundles" /></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let chartObjInst = null;
+    let chartTopInst = null;
+
+    async function loadConfig() {
+      const r = await fetch("/api/config");
+      if (!r.ok) throw new Error("Config failed");
+      const cfg = await r.json();
+      const sel = document.getElementById("segment");
+      sel.innerHTML = "";
+      cfg.segments.forEach((s) => {
+        const o = document.createElement("option");
+        o.value = s.package_start;
+        o.textContent = s.label;
+        sel.appendChild(o);
+      });
+      document.getElementById("nCov").max = cfg.max_coverages;
+      document.getElementById("nPkg").max = cfg.max_packages;
+      document.getElementById("nCov").value = cfg.defaults.n_coverages;
+      document.getElementById("nPkg").value = cfg.defaults.n_packages;
+    }
+
+    function fmtMoney(x) {
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(x);
+    }
+
+    async function runOpt() {
+      const err = document.getElementById("error");
+      const st = document.getElementById("status");
+      err.style.display = "none";
+      st.style.display = "block";
+      document.getElementById("runBtn").disabled = true;
+
+      const body = {
+        n_coverages: Number(document.getElementById("nCov").value),
+        n_packages: Number(document.getElementById("nPkg").value),
+        package_start: Number(document.getElementById("segment").value),
+        seed: Number(document.getElementById("seed").value) || null,
+      };
+
+      try {
+        const r = await fetch("/api/optimize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          let msg = "Request failed";
+          if (typeof data.detail === "string") msg = data.detail;
+          else if (Array.isArray(data.detail)) msg = data.detail.map((d) => d.msg || d).join("; ");
+          else if (data.detail) msg = JSON.stringify(data.detail);
+          throw new Error(msg);
+        }
+
+        document.getElementById("results").style.display = "block";
+        document.getElementById("interpret").textContent = data.interpretation;
+
+        document.getElementById("cBundle").textContent = data.classical_bundle;
+        document.getElementById("cObj").textContent = fmtMoney(data.classical_objective);
+        document.getElementById("cConf").textContent = data.classical_confidence;
+
+        document.getElementById("qBundle").textContent = data.qaoa_bundle || "—";
+        document.getElementById("qObj").textContent = fmtMoney(data.qaoa_objective);
+        document.getElementById("qConf").textContent = data.qaoa_confidence;
+
+        document.getElementById("dBundle").textContent = data.dqi_bundle || "—";
+        document.getElementById("dObj").textContent = fmtMoney(data.dqi_objective);
+        document.getElementById("dConf").textContent = data.dqi_confidence;
+
+        const co = data.chart_objectives;
+        const ctxO = document.getElementById("chartObj");
+        if (chartObjInst) chartObjInst.destroy();
+        chartObjInst = new Chart(ctxO, {
+          type: "bar",
+          data: {
+            labels: co.labels,
+            datasets: [{
+              label: "Contribution margin",
+              data: co.values,
+              backgroundColor: ["#2e7d32", "#1565c0", "#6a1b9a"],
+            }],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: false, title: { display: true, text: "Margin ($)" } } },
+          },
+        });
+
+        const top = data.chart_top_bundles || [];
+        const ctxT = document.getElementById("chartTop");
+        if (chartTopInst) chartTopInst.destroy();
+        if (top.length === 0) {
+          chartTopInst = new Chart(ctxT, {
+            type: "bar",
+            data: { labels: ["No feasible QAOA draws"], datasets: [{ data: [0], backgroundColor: ["#ccc"] }] },
+            options: { plugins: { legend: { display: false } } },
+          });
+        } else {
+          chartTopInst = new Chart(ctxT, {
+            type: "bar",
+            data: {
+              labels: top.map((t) => (t.label.length > 42 ? t.label.slice(0, 40) + "…" : t.label)),
+              datasets: [{
+                label: "Objective",
+                data: top.map((t) => t.objective),
+                backgroundColor: top.map((t) => (t.is_best ? "#ffb300" : "#3949ab")),
+              }],
+            },
+            options: {
+              indexAxis: "y",
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: { x: { title: { display: true, text: "Margin ($)" } } },
+            },
+          });
+        }
+
+        const ts = Date.now();
+        if (data.plot_urls && data.plot_urls.objectives) {
+          document.getElementById("imgObj").src = data.plot_urls.objectives + "?t=" + ts;
+        }
+        if (data.plot_urls && data.plot_urls.top_bundles) {
+          document.getElementById("imgTop").src = data.plot_urls.top_bundles + "?t=" + ts;
+        }
+      } catch (e) {
+        err.textContent = e.message;
+        err.style.display = "block";
+      } finally {
+        st.style.display = "none";
+        document.getElementById("runBtn").disabled = false;
+      }
+    }
+
+    document.getElementById("runBtn").addEventListener("click", runOpt);
+    loadConfig().catch((e) => {
+      document.getElementById("error").textContent = "Failed to load config: " + e;
+      document.getElementById("error").style.display = "block";
+    });
+  </script>
+</body>
+</html>

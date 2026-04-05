@@ -362,15 +362,16 @@ def run_qaoa(
         options={"maxiter": max_iterations},
     )
 
-    # If no feasible solution was found during optimization, do a final sampling run
-    if best_solution_overall is None:
-        gammas_opt = result.x[:p]
-        betas_opt = result.x[p:]
-        qc_final = build_qaoa_circuit(c, A, b, senses, gammas_opt, betas_opt, penalty)
-        counts_final = simulate_circuit(qc_final, shots=shots)
-        eval_result = evaluate_qaoa(counts_final, c, A, b, senses, penalty)
-        best_solution_overall = eval_result["best_bitstring"]
+    # Always sample the optimized circuit: variational tracking is approximate;
+    # measurement over the full distribution finds high-quality feasible states.
+    gammas_opt = result.x[:p]
+    betas_opt = result.x[p:]
+    qc_final = build_qaoa_circuit(c, A, b, senses, gammas_opt, betas_opt, penalty)
+    counts_final = simulate_circuit(qc_final, shots=shots)
+    eval_result = evaluate_qaoa(counts_final, c, A, b, senses, penalty)
+    if eval_result["best_objective"] > best_obj_overall:
         best_obj_overall = eval_result["best_objective"]
+        best_solution_overall = eval_result["best_bitstring"]
 
     return {
         "optimal_params": result.x,
@@ -378,4 +379,7 @@ def run_qaoa(
         "convergence_history": convergence_history,
         "best_solution": best_solution_overall,
         "best_objective": best_obj_overall,
+        "final_counts": counts_final,
+        "final_feasibility_rate": eval_result["feasibility_rate"],
+        "final_mean_objective_feasible": eval_result["mean_objective"],
     }

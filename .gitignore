@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+.venv/
+venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Generated benchmark / demo outputs (reproduce via notebook or web app)
+code_examples/data/*.png
+code_examples/data/*.json
+code_examples/web/static/plots/*.png
+
+# OS
+.DS_Store

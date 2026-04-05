@@ -1,0 +1,18 @@
+# Run benchmarks from code_examples/: pip install -r requirements.txt
+
+# Core stack
+qiskit>=1.0
+qiskit-aer>=0.14
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+pandas>=2.0
+pulp>=2.7
+
+# Jupyter demo layer (notebooks under code_examples/notebooks/)
+ipykernel>=6.0
+notebook>=7.0
+
+# Interactive judge demo: cd code_examples && uvicorn web.app:app --reload
+fastapi>=0.110
+uvicorn[standard]>=0.27
